@@ -97,3 +97,50 @@ pub fn get_financial_dashboard(month:String)->Result<FinancialDashboard,String>{
     let balance=opening+posted; let committed=planned_expense+installments; let available=(balance-committed-goals).max(0); let projected=balance+planned_income-committed-goals;
     Ok(FinancialDashboard{current_balance_cents:balance,available_to_spend_cents:available,committed_cents:committed,projected_end_cents:projected,income_cents:income,spent_cents:spent,investments_cents:investments,pending_bills_count:pending,goal_minimum_cents:goals})
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::connection::set_app_data_dir;
+    use std::fs;
+
+    #[test]
+    fn test_financial_calculations_and_flow() {
+        let mut path = std::env::temp_dir();
+        path.push("lista_compras_finance_test");
+        let _ = fs::remove_dir_all(&path);
+        fs::create_dir_all(&path).unwrap();
+        set_app_data_dir(path);
+        
+        let conn = crate::db::connection::get_connection().unwrap();
+        crate::db::migrations::run_migrations(&conn).unwrap();
+        
+        let month = Utc::now().date_naive().format("%Y-%m").to_string();
+        
+        // Test 1: Empty dashboard
+        let dash = get_financial_dashboard(month.clone()).unwrap();
+        assert_eq!(dash.current_balance_cents, 0);
+        
+        // Test 2: Seed examples and check calculations
+        seed_financial_example().expect("Failed to seed examples");
+        let dash = get_financial_dashboard(month.clone()).expect("Failed to get dashboard");
+        
+        assert_eq!(dash.current_balance_cents, 495150, "Saldo real incorreto");
+        assert_eq!(dash.committed_cents, 20490, "Comprometido incorreto");
+        assert_eq!(dash.goal_minimum_cents, 20000, "Minimo de metas incorreto");
+        assert_eq!(dash.available_to_spend_cents, 454660, "Seguro para gastar incorreto");
+        assert_eq!(dash.projected_end_cents, 454660, "Projetado incorreto");
+        assert_eq!(dash.pending_bills_count, 1, "Parcelas pendentes incorreto");
+        
+        // Test 3: Mark installment as paid changes semantics correctly
+        let installments = list_financial_installments(month.clone()).unwrap();
+        assert_eq!(installments.len(), 1);
+        let inst_id = installments[0].id;
+        
+        mark_financial_installment_paid(inst_id).unwrap();
+        
+        let dash2 = get_financial_dashboard(month.clone()).unwrap();
+        assert_eq!(dash2.committed_cents, 7990, "Parcela paga nao deve compor o comprometido");
+        assert_eq!(dash2.pending_bills_count, 0, "Deve haver 0 parcelas pendentes");
+        assert_eq!(dash2.available_to_spend_cents, 454660 + 12500, "Seguro sobe ate o lancamento real ser registrado");
+    }
+}

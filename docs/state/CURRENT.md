@@ -1,4 +1,4 @@
-# Estado atual da Lista de Compras
+﻿# Estado atual da Lista de Compras
 
 > Última verificação documental: 2026-09-17
 >
@@ -13,21 +13,17 @@
 - Criação, listagem, remoção e upsert por UUID expostos por comandos Tauri.
 - Consultas auxiliares de preço por URL e Google Shopping/SerpApi.
 - Cliente Supabase opcional, condicionado a variáveis Vite.
-- Especificação e fundação de dados do módulo financeiro em andamento; ela não
-  representa ainda uma funcionalidade financeira completamente validada ao usuário.
+- Fase 1 Financeira concluída: Dashboard, cálculo de Saldo Real, Seguro para Gastar, Comprometido e Projeção mensal, incluindo gestão de parcelas e metas mínimas, e validado por testes unitários e de integração locais.
 
 ## Limites verificados
 
 - A tela principal é introdutória; a experiência completa de lista não está
   demonstrada pela interface atual.
-- Não há testes automatizados configurados no repositório.
 - Não há sincronização automática, resolução de conflitos, conta obrigatória ou
   garantia de preços externos.
 - O uso efetivo de Supabase não integra o fluxo local de dados.
+- O módulo financeiro realiza controle manual e não utiliza Open Finance.
 
 ## Próximo passo sugerido
 
-Concluir a Fase 1 financeira seguindo `docs/finance/`: registrar comandos,
-adaptador e dashboard mínimo sobre a fundação de dados já compilados; validar
-manualmente exemplos, persistência e semântica das parcelas no Tauri, conforme
-o próximo passo em `DOING.md`.
+Consolidar a experiência principal da Lista de Compras. A fundação de compras (itens e categorias) deve ser unida à interface principal e tornar-se a prioridade. Alternativamente, avançar para a Fase 2 do Financeiro, dependendo da prioridade do usuário/negócio. O ambiente local está estável, com build passando e os primeiros testes configurados em Rust.

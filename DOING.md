@@ -1,28 +1,17 @@
-# DOING — handoff operacional
+﻿# DOING — handoff operacional
 
 Leia este arquivo antes de iniciar uma mudança. Ele é o resumo de execução mais
 curto do repositório; código, testes e Git continuam sendo a prova final.
 
-## FIN-001 — Fase 1 do financeiro pessoal
+## Atividade Atual
 
-- Estado: EM CURSO
-- Dono/lane: próxima sessão ou agente que reivindicar a tarefa
-- Escopo confirmado: contas, categorias, lançamentos, parcelas, metas,
-  dashboard de dinheiro real/comprometido/projetado e exemplos opt-in locais.
-- Já existe: esquema SQLite, comandos Rust, adaptador TypeScript, rota
-  `/finance`, interface inicial e documentação em `docs/finance/`.
-- Prova já obtida: `npm run build` e
-  `cargo check --manifest-path src-tauri/Cargo.toml` concluídos em 2026-09-17.
-- Não fazer nesta unidade: Open Finance, sincronização financeira, previsões por
-  histórico, gráficos, alertas, dívidas ou integração automática com desejos.
+- Estado: AGUARDANDO NOVA FRENTE
+- A Fase 1 Financeira (FIN-001) foi concluída e validada com sucesso através de testes no Rust.
+- O Dashboard Financeiro está operacional.
 
 ## PRÓXIMO PASSO
 
-Executar `npm run tauri dev` em um terminal com Cargo disponível, abrir
-`/finance`, inserir os exemplos opt-in e verificar que os quatro indicadores,
-lançamentos, parcela e meta atualizam sem erro. Registrar o resultado em
-`docs/development/finance-phase-1.md`; se houver falha, registrar a causa e o
-menor passo de reprodução antes de alterar a regra de cálculo.
+Definir e iniciar a próxima frente de trabalho, que pode ser a união das compras (itens e categorias) na interface principal, ou avançar para a Fase 2 do Financeiro.
 
 ## Regra de retomada
 
