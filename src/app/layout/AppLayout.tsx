@@ -515,6 +515,9 @@ export default function AppLayout() {
           <Link to="/shopping" className="btn btn-secondary">
             Compras
           </Link>
+          <Link to="/finance" className="btn btn-ghost">
+            Finanças
+          </Link>
           <Link to="/games" className="btn btn-ghost">
             Jogos
           </Link>
@@ -787,6 +790,9 @@ export default function AppLayout() {
         </Link>
         <Link to="/games" className="nav-link">
           Jogos
+        </Link>
+        <Link to="/finance" className="nav-link">
+          Finanças
         </Link>
         <Link to="/settings" className="nav-link">
           Ajustes

@@ -15,7 +15,20 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
-Nenhum trabalho ativo registrado.
+## FIN-001 — Fundação do financeiro pessoal
+
+- Status: in progress
+- Owner/lane: agente atual
+- Scope: modelo local, cálculo central inicial, contratos, dashboard e registro
+  de lançamentos da Fase 1
+- Boundaries: não alterar dados existentes de compras; não implementar Open
+  Finance, sincronização financeira ou previsões apresentadas como certeza
+- Evidence: `npm run build`, `cargo check`, revisão do contrato de cálculos e
+  fluxo local Tauri
+- Next step: seguir `DOING.md`: validar em runtime Tauri os dados de exemplo,
+  indicadores e persistência; registrar a evidência em
+  `docs/development/finance-phase-1.md`
+- Updated: 2026-09-17
 
 ## Modelo de entrada
 

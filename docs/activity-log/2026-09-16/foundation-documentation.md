@@ -16,7 +16,8 @@ Não havia regras persistentes de arquitetura, versão ou retomada entre agentes
 
 - Revisão dos caminhos de código, comandos Tauri, esquema e scripts declarados.
 - `git diff --check` concluído sem erros de whitespace.
-- `npm run build` não pôde concluir porque `tsc` não está disponível no ambiente.
+- `npm run build` concluído com sucesso (`tsc` e Vite; 91 módulos transformados).
+- `npm audit --json` não reportou vulnerabilidades nas dependências atuais.
 - `cargo check --manifest-path src-tauri/Cargo.toml` não pôde iniciar porque
   `cargo` não está instalado ou não está no `PATH` do ambiente.
 

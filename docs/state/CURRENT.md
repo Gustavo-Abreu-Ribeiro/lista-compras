@@ -1,6 +1,6 @@
 # Estado atual da Lista de Compras
 
-> Última verificação documental: 2026-09-16
+> Última verificação documental: 2026-09-17
 >
 > Este é um resumo para retomada. Código, testes e comandos reproduzíveis são a
 > prova do comportamento da revisão atual.
@@ -13,6 +13,8 @@
 - Criação, listagem, remoção e upsert por UUID expostos por comandos Tauri.
 - Consultas auxiliares de preço por URL e Google Shopping/SerpApi.
 - Cliente Supabase opcional, condicionado a variáveis Vite.
+- Especificação e fundação de dados do módulo financeiro em andamento; ela não
+  representa ainda uma funcionalidade financeira completamente validada ao usuário.
 
 ## Limites verificados
 
@@ -25,5 +27,7 @@
 
 ## Próximo passo sugerido
 
-Inspecionar a intenção da UI de compras e entregar uma fatia vertical pequena
-que use adaptadores existentes, validada com build TypeScript e `cargo check`.
+Concluir a Fase 1 financeira seguindo `docs/finance/`: registrar comandos,
+adaptador e dashboard mínimo sobre a fundação de dados já compilados; validar
+manualmente exemplos, persistência e semântica das parcelas no Tauri, conforme
+o próximo passo em `DOING.md`.

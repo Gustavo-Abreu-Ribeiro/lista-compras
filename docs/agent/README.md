@@ -8,9 +8,11 @@ agentes. Ele complementa, mas não substitui, [AGENTS.md](../../AGENTS.md).
 Para implementação, leia nesta ordem:
 
 1. `AGENTS.md`;
-2. [`CURRENT.md`](../state/CURRENT.md) e [`WORKBOARD.md`](../state/WORKBOARD.md);
-3. código, contratos, documentação e verificações da área afetada;
-4. [`roadmap.md`](../roadmap.md), se a tarefa envolver priorização;
+2. [`DOING.md`](../../DOING.md), [`CURRENT.md`](../state/CURRENT.md) e
+   [`WORKBOARD.md`](../state/WORKBOARD.md);
+3. [`development/`](../development/README.md), código, contratos e verificações
+   da área afetada;
+4. roadmap ou documentação futura, se a tarefa envolver priorização;
 5. `git status` e histórico recente.
 
 Conversa antiga, plano não executado ou activity log não comprovam estado atual.
@@ -38,6 +40,8 @@ Confirme no repositório.
 - Atualize ou remova a entrada do workboard.
 - Registre incremento significativo no activity log.
 - Se houver pendência, deixe ação, arquivo e prova exatos.
+- Não confunda documento em `docs/development/` ou `future/` com comportamento
+  confirmado: valide e mova/atualize a documentação no mesmo incremento.
 
 ## Fontes de verdade
 

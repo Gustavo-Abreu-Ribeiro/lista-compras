@@ -2,10 +2,13 @@
 
 O projeto evolui por incrementos pequenos, verificáveis e documentados.
 
-1. Leia [AGENTS.md](AGENTS.md).
-2. Consulte [estado atual](docs/state/CURRENT.md) e [workboard](docs/state/WORKBOARD.md).
+1. Leia [AGENTS.md](AGENTS.md) e [DOING.md](DOING.md).
+2. Consulte [estado atual](docs/state/CURRENT.md), o [workboard](docs/state/WORKBOARD.md)
+   e o [trabalho em curso](docs/development/README.md).
 3. Inspecione código, contratos e documentação afetados.
 4. Defina a menor entrega útil e a evidência de funcionamento.
+5. Ao parar antes da conclusão, atualize `DOING.md` com a próxima ação exata e
+   sua prova esperada.
 
 ## Commits e versões
 

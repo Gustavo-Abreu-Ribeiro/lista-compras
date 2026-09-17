@@ -1,0 +1,34 @@
+# Roadmap financeiro
+
+O roadmap separa fundação verificável de funcionalidades ambiciosas. Cada fase
+precisa preservar a fórmula e o histórico da anterior.
+
+## Fase 1 — fundação local
+
+- Contas, categorias, lançamentos realizados e planejados.
+- Valores em centavos, datas ISO e persistência SQLite com UUID.
+- Dashboard: real, comprometido, seguro para gastar e projeção mensal.
+- Parcelas mensais, metas e contribuições mínima/ideal.
+- Dados de exemplo opcionais, nunca inseridos sem ação do usuário.
+
+## Fase 2 — planejamento mensal
+
+- Gastos fixos/recorrentes, contas a pagar e confirmação de pagamento.
+- Orçamento por categoria, calendário e visão mensal congelada.
+- Investimentos, reserva de emergência e patrimônio básico.
+- Integração de impacto com itens e desejos da lista.
+
+## Fase 3 — projeções explicáveis
+
+- Cenários conservador, realista e otimista.
+- Média e tendência de gastos variáveis, com base e limite expostos.
+- Timeline de 3, 6 e 12 meses, simulador “E se?” e redistribuição sugerida.
+- Score de viabilidade objetivo para desejos, sem avaliação moral.
+
+## Fase 4 — análise e automação assistida
+
+- Gráficos, inteligência descritiva, alertas controláveis e detecção de
+  recorrência que sempre pede confirmação.
+- Dívidas, patrimônio completo e relatórios por período.
+- Importadores CSV/OFX/PDF. Open Finance exige decisão de segurança, privacidade
+  e novo ADR antes de ser considerado.

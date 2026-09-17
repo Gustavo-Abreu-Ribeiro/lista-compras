@@ -15,6 +15,11 @@ interface React executada pelo Tauri e persistência SQLite no dispositivo.
 Consulte o [estado verificado](docs/state/CURRENT.md) antes de assumir que uma
 funcionalidade está pronta.
 
+O módulo [Financeiro pessoal](docs/finance/README.md) está em Fase 1: a
+fundação local e o dashboard inicial existem no código, mas a validação de fluxo
+em runtime ainda está em curso. Veja [DOING.md](DOING.md) para retomar sem
+depender de contexto de conversa.
+
 ## Arquitetura
 
 ```text
@@ -66,6 +71,7 @@ retornam resultado vazio.
 ## Trabalho colaborativo e agentes
 
 Antes de alterar código, leia [AGENTS.md](AGENTS.md), o
+[handoff operacional](DOING.md), o
 [guia de continuidade](docs/agent/README.md), o
 [estado atual](docs/state/CURRENT.md) e o
 [workboard](docs/state/WORKBOARD.md).
@@ -79,3 +85,5 @@ Antes de alterar código, leia [AGENTS.md](AGENTS.md), o
 - [Contribuição](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
 - [Registro de atividades](docs/activity-log/README.md)
+- [Visão e roadmap financeiro](docs/finance/README.md)
+- [Trabalho em desenvolvimento](docs/development/README.md)

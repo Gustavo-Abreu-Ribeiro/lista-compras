@@ -3,6 +3,7 @@
 mod models;
 mod commands;
 mod db;
+use commands::finance;
 
 //use tauri_plugin_opener::OpenerExt;
 use tauri::Manager;
@@ -40,6 +41,19 @@ fn main() {
             commands::sync::upsert_category,
             commands::sync::upsert_item,
             commands::sync::upsert_item_link
+            ,finance::list_financial_accounts
+            ,finance::create_financial_account
+            ,finance::list_financial_categories
+            ,finance::create_financial_category
+            ,finance::list_financial_transactions
+            ,finance::create_financial_transaction
+            ,finance::create_financial_installment
+            ,finance::list_financial_installments
+            ,finance::mark_financial_installment_paid
+            ,finance::list_financial_goals
+            ,finance::create_financial_goal
+            ,finance::seed_financial_example
+            ,finance::get_financial_dashboard
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -22,6 +22,9 @@ export default function IntroLayout() {
           <Link to="/shopping" className="btn btn-ghost">
             Compras
           </Link>
+          <Link to="/finance" className="btn btn-ghost">
+            Finanças
+          </Link>
           <Link to="/games" className="btn btn-ghost">
             Jogos
           </Link>
@@ -55,6 +58,11 @@ export default function IntroLayout() {
             <p className="muted">Nome do jogo e link rapido para compra.</p>
             <span className="btn btn-primary">Abrir</span>
           </Link>
+          <Link to="/finance" className="intro-card">
+            <h2>Finanças pessoais</h2>
+            <p className="muted">Saldo, compromissos, metas e projeções locais.</p>
+            <span className="btn btn-primary">Abrir</span>
+          </Link>
         </section>
       </div>
 
@@ -67,6 +75,9 @@ export default function IntroLayout() {
         </Link>
         <Link to="/games" className="nav-link">
           Jogos
+        </Link>
+        <Link to="/finance" className="nav-link">
+          Finanças
         </Link>
         <Link to="/settings" className="nav-link">
           Ajustes

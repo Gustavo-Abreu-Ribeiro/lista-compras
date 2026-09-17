@@ -15,3 +15,4 @@ permanece fora de escopo.
 ## Índice
 
 - [2026-09-16](2026-09-16/README.md)
+- [2026-09-17](2026-09-17/README.md)

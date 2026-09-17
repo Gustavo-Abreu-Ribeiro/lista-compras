@@ -9,3 +9,4 @@ pub mod items;
 pub mod item_links;
 pub mod prices;
 pub mod sync;
+pub mod finance;

@@ -9,6 +9,7 @@ validação real.
 | Esquema SQLite | `src-tauri/src/db/migrations.rs` | comandos e dados persistidos | [Arquitetura](../architecture.md) |
 | Tipos serializados | `src-tauri/src/models/` | `src/types/` e UI | modelos e tipos |
 | Configuração externa | ambiente do processo | Supabase e preços | [README](../../README.md#configuração-opcional) |
+| Finanças locais | comandos `finance.rs` | `src/features/finance/` | [Contrato de cálculos](../finance/calculation-contract.md) |
 
 ## Regras de mudança
 
@@ -20,3 +21,5 @@ validação real.
   arquitetura se a estrutura observável mudar.
 - Adicionar segredo: não o versione; documente apenas nome, finalidade e onde é
   consumido.
+- Alterar cálculo financeiro: atualize o contrato de cálculos, preserve fatos
+  históricos e trate mudanças incompatíveis como ADR.

@@ -30,6 +30,9 @@ src-tauri/src/models/        dados serializados de saída
 - IDs inteiros são locais ao banco; UUIDs são a identidade portátil para
   operações explícitas de upsert.
 - Supabase é opcional e não é a fonte local de verdade atual.
+- O financeiro possui sua visão, arquitetura e contrato em `docs/finance/`.
+  Leia-os antes de alterar cálculos, dados financeiros ou sua integração com
+  compras/desejos.
 
 Não mova responsabilidades entre essas camadas sem decisão documentada.
 
@@ -57,10 +60,12 @@ Não mova responsabilidades entre essas camadas sem decisão documentada.
 
 ### Antes
 
-1. Leia `docs/agent/README.md`, `docs/state/CURRENT.md` e o workboard.
+1. Leia `DOING.md`, `docs/agent/README.md`, `docs/state/CURRENT.md` e o workboard.
 2. Inspecione código, contratos e verificações afetados.
 3. Escolha o menor incremento verificável.
 4. Registre ou respeite a propriedade no workboard em trabalho concorrente.
+5. Audite `docs/development/`: itens ali ainda exigem implementação ou prova;
+   itens em `docs/development/future/` são intenção, não autorização.
 
 ### Durante
 
@@ -77,6 +82,10 @@ Não mova responsabilidades entre essas camadas sem decisão documentada.
 2. Atualize contratos, README ou arquitetura se o comportamento mudou.
 3. Atualize `CURRENT.md` e o workboard quando estado ou propriedade mudou.
 4. Registre incrementos significativos em `docs/activity-log/YYYY-MM-DD/`.
+5. Ao iniciar uma frente de produto extensa, crie ou atualize visão, arquitetura,
+   contrato, roadmap e workboard antes de expandir o código.
+6. Deixe `DOING.md` com um próximo passo exato, arquivo afetado e prova esperada
+   antes de encerrar uma unidade incompleta.
 
 ## Qualidade mínima
 
@@ -103,6 +112,9 @@ Prefira commits pequenos e verificáveis.
 | Contratos e ADRs | compromissos de integração e decisões aceitas |
 | `docs/state/CURRENT.md` | retrato verificado para retomada |
 | `docs/state/WORKBOARD.md` | trabalho ativo, dono e próximo passo |
+| `DOING.md` | handoff curto, trabalho atual e próximo passo verificável |
+| `docs/development/` | trabalho em curso com pendências e critérios de aceite |
+| `docs/development/future/` | planejamento que ainda não está em execução |
 | Roadmap | intenção futura, não implementação |
 | Activity log | histórico de incrementos |
 

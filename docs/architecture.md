@@ -60,3 +60,10 @@ Não exponha `SERPAPI_KEY` ao frontend nem prometa exatidão de dados externos.
 Mudança de comando Tauri, migração ou modelo serializado é mudança de contrato.
 Atualize o [índice de contratos](contracts/README.md) e use ADR para decisões
 difíceis de reverter.
+
+## Financeiro
+
+O módulo financeiro é uma fronteira local independente, documentada em
+[docs/finance](finance/README.md). Seus cálculos vivem no backend Rust e seus
+dados não devem ser misturados às tabelas de compras. A integração futura com
+desejos ocorre por contrato explícito de impacto de compra.
