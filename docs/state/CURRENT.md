@@ -7,7 +7,8 @@
 
 ## Implementado
 
-- Aplicativo Tauri 2 com frontend React/TypeScript e rotas base.
+- Aplicativo Tauri 2 com frontend React/TypeScript e rotas base consolidadas.
+- A experiência principal de compras foi unida à interface principal (rota padrão `/`), removendo a tela introdutória desnecessária.
 - Inicialização de SQLite no diretório de dados da aplicação.
 - Categorias, itens e links de lojas com UUID e timestamps.
 - Criação, listagem, remoção e upsert por UUID expostos por comandos Tauri.
@@ -17,13 +18,9 @@
 
 ## Limites verificados
 
-- A tela principal é introdutória; a experiência completa de lista não está
-  demonstrada pela interface atual.
-- Não há sincronização automática, resolução de conflitos, conta obrigatória ou
-  garantia de preços externos.
-- O uso efetivo de Supabase não integra o fluxo local de dados.
+- Não há sincronização automática contínua nativa (o uso de Supabase é manual/experimental e não integra o fluxo local de dados como fonte da verdade).
 - O módulo financeiro realiza controle manual e não utiliza Open Finance.
 
 ## Próximo passo sugerido
 
-Consolidar a experiência principal da Lista de Compras. A fundação de compras (itens e categorias) deve ser unida à interface principal e tornar-se a prioridade. Alternativamente, avançar para a Fase 2 do Financeiro, dependendo da prioridade do usuário/negócio. O ambiente local está estável, com build passando e os primeiros testes configurados em Rust.
+Avançar para a Fase 2 do Financeiro ou refinar funcionalidades de compras (edição/drag-and-drop), de acordo com a prioridade do negócio. O ambiente está limpo e a navegação principal está focada na funcionalidade de "Compras".

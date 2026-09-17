@@ -75,7 +75,7 @@ export default function FinanceLayout() {
   async function addExample() { try { await seedFinancialExample(); setNotice("Exemplos inseridos. Você pode começar a substituí-los pelos seus dados."); load() } catch (error) { setNotice(String(error)) } }
 
   return <div className="page finance-page">
-    <nav className="top-nav"><div className="brand"><span className="badge">Finanças</span></div><div className="nav-links"><Link to="/" className="btn btn-ghost">Início</Link><Link to="/shopping" className="btn btn-ghost">Compras</Link><Link to="/finance" className="btn btn-secondary">Finanças</Link></div></nav>
+    <nav className="top-nav"><div className="brand"><span className="badge">Finanças</span></div><div className="nav-links"><Link to="/" className="btn btn-ghost">Compras</Link><Link to="/finance" className="btn btn-secondary">Finanças</Link></div></nav>
     <main className="finance-shell">
       <header className="finance-header"><div><p className="eyebrow">Visão mensal</p><h1>Clareza para decidir hoje.</h1><p className="muted">Valores reais, compromissos e estimativas ficam separados.</p></div><div className="finance-header-actions"><button className="btn btn-ghost" onClick={addExample}>Usar exemplos</button><label className="field finance-month"><span>Mês analisado</span><input className="input" type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></label></div></header>
       {notice && <p className="finance-notice">{notice}</p>}

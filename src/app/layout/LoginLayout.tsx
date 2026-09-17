@@ -77,9 +77,6 @@ export default function LoginLayout() {
         </div>
         <div className="nav-links">
           <Link to="/" className="btn btn-ghost">
-            Inicio
-          </Link>
-          <Link to="/shopping" className="btn btn-ghost">
             Compras
           </Link>
           <Link to="/games" className="btn btn-ghost">
@@ -149,9 +146,6 @@ export default function LoginLayout() {
 
       <div className="bottom-nav">
         <Link to="/" className="nav-link">
-          Inicio
-        </Link>
-        <Link to="/shopping" className="nav-link">
           Compras
         </Link>
         <Link to="/games" className="nav-link">

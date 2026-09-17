@@ -509,10 +509,7 @@ export default function AppLayout() {
           <span className="badge">Lista</span>
         </div>
         <div className="nav-links">
-          <Link to="/" className="btn btn-ghost">
-            Inicio
-          </Link>
-          <Link to="/shopping" className="btn btn-secondary">
+          <Link to="/" className="btn btn-secondary">
             Compras
           </Link>
           <Link to="/finance" className="btn btn-ghost">
@@ -533,9 +530,6 @@ export default function AppLayout() {
             <h2>Categorias</h2>
           </div>
           <div className="actions">
-            <Link to="/" className="btn btn-ghost">
-              Inicio
-            </Link>
             <button className="btn btn-primary" onClick={addCategory}>
               Nova
             </button>
@@ -783,9 +777,6 @@ export default function AppLayout() {
 
       <div className="bottom-nav">
         <Link to="/" className="nav-link">
-          Inicio
-        </Link>
-        <Link to="/shopping" className="nav-link">
           Compras
         </Link>
         <Link to="/games" className="nav-link">

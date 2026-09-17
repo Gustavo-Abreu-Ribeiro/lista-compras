@@ -243,9 +243,6 @@ export default function GameLayout() {
         </div>
         <div className="nav-links">
           <Link to="/" className="btn btn-ghost">
-            Inicio
-          </Link>
-          <Link to="/shopping" className="btn btn-ghost">
             Compras
           </Link>
           <Link to="/games" className="btn btn-secondary">
@@ -261,10 +258,7 @@ export default function GameLayout() {
               <p className="eyebrow">Navegacao</p>
               <h2>Voltar</h2>
             </div>
-            <Link to="/" className="btn btn-ghost">
-              Inicio
-            </Link>
-          </div>
+            </div>
           <div className="card">
             <h3>Lista de jogos</h3>
             <p className="muted">
@@ -454,9 +448,6 @@ export default function GameLayout() {
 
       <div className="bottom-nav">
         <Link to="/" className="nav-link">
-          Inicio
-        </Link>
-        <Link to="/shopping" className="nav-link">
           Compras
         </Link>
         <Link to="/games" className="nav-link">
