@@ -1,180 +1,56 @@
-﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
-import type { Session } from "@supabase/supabase-js"
-import { Link } from "react-router-dom"
-import { getActiveListId, supabase } from "../../services/supabase"
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
+import AppNavigation from "./AppNavigation"
+import { supabase } from "../../services/supabase"
 
 type GameStatus = "backlog" | "playing" | "finished"
-
-type Game = {
-  id: string
-  name: string
-  url: string
-  status: GameStatus
-  updated_at: string
-}
+type Game = { id: string; name: string; url: string; status: GameStatus; updated_at: string }
 
 export default function GameLayout() {
   const [games, setGames] = useState<Game[]>([])
   const [name, setName] = useState("")
   const [url, setUrl] = useState("")
-  const [session, setSession] = useState<Session | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(15)
+  const [notice, setNotice] = useState("")
   const chartRef = useRef<HTMLDivElement | null>(null)
-  const syncTimer = useRef<number | null>(null)
-  const hasSynced = useRef(false)
-
-  useEffect(() => {
-    if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session ?? null)
-    })
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession)
-      }
-    )
-    return () => {
-      subscription?.subscription?.unsubscribe()
-    }
-  }, [])
 
   function truncateText(text: string, maxLength: number) {
     if (text.length <= maxLength) return text
     return `${text.slice(0, Math.max(0, maxLength - 1))}…`
   }
 
-  function ensureId(value: unknown) {
-    if (typeof value === "string" && value.trim()) return value
-    return crypto?.randomUUID?.() ?? fallbackId()
-  }
-
-  function fallbackId() {
-    return `game-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
-  }
-
-  const storageKey = "lista-compras:games"
-
-  function normalizeGame(raw: any): Game {
-    const status =
-      raw.status ?? (raw.done ? ("finished" as GameStatus) : ("backlog" as GameStatus))
-    return {
-      id: ensureId(raw.id),
-      name: String(raw.name ?? ""),
-      url: String(raw.url ?? ""),
-      status,
-      updated_at: raw.updated_at ?? new Date().toISOString(),
-    }
-  }
-
-  function persistGames(next: Game[], options?: { skipSync?: boolean }) {
-    setGames(next)
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(storageKey, JSON.stringify(next))
-    }
-    if (!options?.skipSync) queueGamesSync(next)
-  }
-
   useEffect(() => {
     const storedTheme = localStorage.getItem("lista-compras:theme")
-    if (storedTheme) {
-      document.documentElement.dataset.theme = storedTheme
-    }
-    if (typeof localStorage === "undefined") return
-    const stored = localStorage.getItem(storageKey)
-    if (!stored) return
-    try {
-      const parsed = JSON.parse(stored) as Array<Game & { done?: boolean }>
-      if (Array.isArray(parsed)) {
-        const normalized = parsed.map((game) => normalizeGame(game))
-        setGames(normalized)
+    if (storedTheme) document.documentElement.dataset.theme = storedTheme
+    let active = true
+    async function loadGames() {
+      if (!supabase) {
+        setNotice("Configure o Supabase para carregar sua lista de jogos.")
+        return
       }
-    } catch {
-      // ignore cache issues
+      const { data, error } = await supabase.from("app_games")
+        .select("id,name,url,status,updated_at").order("updated_at", { ascending: false })
+      if (error) {
+        if (active) setNotice(error.message)
+        return
+      }
+      if (active) setGames((data ?? []) as Game[])
     }
+    void loadGames()
+    return () => { active = false }
   }, [])
 
   useEffect(() => {
     function updatePerPage() {
       const height = window.innerHeight
-      const nextPerPage = height < 700 ? 10 : height < 900 ? 12 : 15
-      setPerPage(nextPerPage)
+      setPerPage(height < 700 ? 10 : height < 900 ? 12 : 15)
     }
-
     updatePerPage()
     window.addEventListener("resize", updatePerPage)
     return () => window.removeEventListener("resize", updatePerPage)
   }, [])
 
-  useEffect(() => {
-    const run = async () => {
-      if (hasSynced.current || !supabase) return
-      const listId = getActiveListId(session)
-      try {
-        const { data } = await supabase
-          .from("games")
-          .select("id,name,url,status,updated_at")
-          .eq("list_id", listId)
-
-        if (data && data.length > 0) {
-          const remote = data.map((row) => normalizeGame(row))
-          const merged = mergeGames(games, remote)
-          persistGames(merged, { skipSync: true })
-        } else if (games.length > 0) {
-          await pushGamesToCloud(games)
-        }
-      } catch {
-        // ignore cloud issues
-      } finally {
-        hasSynced.current = true
-      }
-    }
-    run()
-  }, [games, session?.user?.id])
-
-  function mergeGames(local: Game[], remote: Game[]) {
-    const map = new Map<string, Game>()
-    for (const game of local) map.set(game.id, game)
-    for (const game of remote) {
-      const existing = map.get(game.id)
-      if (!existing) {
-        map.set(game.id, game)
-        continue
-      }
-      const localTime = new Date(existing.updated_at).getTime()
-      const remoteTime = new Date(game.updated_at).getTime()
-      map.set(game.id, remoteTime >= localTime ? game : existing)
-    }
-    return Array.from(map.values())
-  }
-
-  function queueGamesSync(next: Game[]) {
-    if (!supabase) return
-    if (syncTimer.current) window.clearTimeout(syncTimer.current)
-    syncTimer.current = window.setTimeout(() => {
-      pushGamesToCloud(next)
-    }, 800)
-  }
-
-  async function pushGamesToCloud(next: Game[]) {
-    if (!supabase) return
-    const listId = getActiveListId(session)
-    await supabase.from("games").upsert(
-      next.map((game) => ({
-        id: game.id,
-        list_id: listId,
-        name: game.name,
-        url: game.url,
-        status: game.status,
-        updated_at: game.updated_at,
-      })),
-      { onConflict: "id" }
-    )
-  }
-
-  const canSubmit = useMemo(() => {
-    return Boolean(name.trim()) && Boolean(url.trim())
-  }, [name, url])
+  const canSubmit = useMemo(() => Boolean(name.trim()) && Boolean(url.trim()), [name, url])
 
   const finishedCount = games.filter((game) => game.status === "finished").length
   const playingCount = games.filter((game) => game.status === "playing").length
@@ -194,41 +70,32 @@ export default function GameLayout() {
     setCurrentPage((page) => Math.min(page, totalPages))
   }, [totalPages])
 
-  function addGame(event: FormEvent) {
+  async function addGame(event: FormEvent) {
     event.preventDefault()
-    if (!canSubmit) return
-
-    const nextGames = [
-      ...games,
-      {
-        id: ensureId(null),
-        name: name.trim(),
-        url: url.trim(),
-        status: "backlog" as GameStatus,
-        updated_at: new Date().toISOString(),
-      },
-    ]
-    persistGames(nextGames)
+    if (!canSubmit || !supabase) return
+    const { data, error } = await supabase.from("app_games").insert({ name: name.trim(), url: url.trim(), status: "backlog" }).select("id,name,url,status,updated_at").single()
+    if (error) { setNotice(error.message); return }
+    setGames((current) => [data as Game, ...current])
     setName("")
     setUrl("")
+    setNotice("")
   }
 
-  function removeGame(id: string) {
-    persistGames(games.filter((game) => game.id !== id))
+  async function removeGame(id: string) {
+    if (!supabase) return
+    const { error } = await supabase.from("app_games").delete().eq("id", id)
+    if (error) { setNotice(error.message); return }
+    setGames((current) => current.filter((game) => game.id !== id))
   }
 
-  function toggleStatus(id: string, status: GameStatus) {
-    persistGames(
-      games.map((game) =>
-        game.id === id
-          ? {
-              ...game,
-              status: game.status === status ? "backlog" : status,
-              updated_at: new Date().toISOString(),
-            }
-          : game
-      )
-    )
+  async function toggleStatus(id: string, status: GameStatus) {
+    if (!supabase) return
+    const game = games.find((entry) => entry.id === id)
+    if (!game) return
+    const updated = { status: game.status === status ? "backlog" as const : status, updated_at: new Date().toISOString() }
+    const { error } = await supabase.from("app_games").update(updated).eq("id", id)
+    if (error) { setNotice(error.message); return }
+    setGames((current) => current.map((entry) => entry.id === id ? { ...entry, ...updated } : entry))
   }
 
   function scrollToChart() {
@@ -237,43 +104,32 @@ export default function GameLayout() {
 
   return (
     <div className="page">
-      <nav className="top-nav">
-        <div className="brand">
-          <span className="badge">Lista</span>
-        </div>
-        <div className="nav-links">
-          <Link to="/" className="btn btn-ghost">
-            Compras
-          </Link>
-          <Link to="/games" className="btn btn-secondary">
-            Jogos
-          </Link>
-        </div>
-      </nav>
+      <AppNavigation />
 
       <div className="app-shell">
         <aside className="panel sidebar">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">Navegacao</p>
-              <h2>Voltar</h2>
+              <p className="eyebrow">Lista</p>
+              <h2>Jogos</h2>
             </div>
             </div>
           <div className="card">
             <h3>Lista de jogos</h3>
             <p className="muted">
-              Guarde seus proximos jogos favoritos em um unico lugar.
+              Marque os jogos que está jogando ou já terminou.
             </p>
             <button className="btn btn-secondary" onClick={scrollToChart}>
-              Ver grafico
+              Ver totais
             </button>
           </div>
         </aside>
 
         <main className="panel main">
+          {notice && <p className="finance-notice" role="status">{notice}</p>}
           <header className="main-header">
             <div>
-              <p className="eyebrow">Colecao</p>
+              <span className="cartucho-session" aria-hidden="true">SESSION 03 // ゲーム // PRATELEIRA</span>
               <h1>Jogos para comprar</h1>
             </div>
             <span className="badge">{games.length}</span>
@@ -322,7 +178,7 @@ export default function GameLayout() {
               {games.length === 0 ? (
                 <div className="empty-state">
                   <h4>Nenhum jogo por aqui</h4>
-                  <p>Cadastre um jogo ao lado para montar sua lista.</p>
+                  <p>Adicione um jogo pelo formulário ao lado.</p>
                 </div>
               ) : (
                 <>
@@ -407,7 +263,7 @@ export default function GameLayout() {
                 <span className="badge">{games.length}</span>
               </div>
               <p className="muted">
-                Comparativo entre jogos concluidos, em andamento e pendentes.
+                Jogos por estado.
               </p>
               <div className="chart">
                 <div className="chart-row">
@@ -446,17 +302,6 @@ export default function GameLayout() {
         </main>
       </div>
 
-      <div className="bottom-nav">
-        <Link to="/" className="nav-link">
-          Compras
-        </Link>
-        <Link to="/games" className="nav-link">
-          Jogos
-        </Link>
-        <Link to="/settings" className="nav-link">
-          Ajustes
-        </Link>
-      </div>
     </div>
   )
 }

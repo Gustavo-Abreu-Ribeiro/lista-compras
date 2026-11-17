@@ -24,3 +24,14 @@ pub struct FinancialDashboard {
     pub projected_end_cents: i64, pub income_cents: i64, pub spent_cents: i64,
     pub investments_cents: i64, pub pending_bills_count: i64, pub goal_minimum_cents: i64,
 }
+#[derive(Serialize)]
+pub struct FinancialBudget { pub id: i32, pub category_id: i32, pub month: String, pub limit_cents: i64, pub spent_cents: i64, pub committed_cents: i64 }
+
+#[derive(Serialize)]
+pub struct FinancialRecurrence { pub id: i32, pub kind: String, pub description: String, pub amount_cents: i64, pub day_of_month: i32, pub start_month: String, pub category_id: Option<i32>, pub account_id: Option<i32>, pub active: bool }
+
+#[derive(Serialize)]
+pub struct FinancialDebt { pub id: i32, pub name: String, pub balance_cents: i64, pub monthly_payment_cents: i64, pub due_day: Option<i32> }
+
+#[derive(Serialize)]
+pub struct FinancialHistoryPoint { pub month: String, pub income_cents: i64, pub spent_cents: i64 }

@@ -5,9 +5,9 @@
 
 ## Propósito
 
-**Lista de Compras** é um aplicativo de compras local-first. Ele organiza
-categorias, itens e links de lojas no dispositivo. Consultas de preços externos
-são auxiliares; a lista local não depende de cloud ou serviço de preços.
+**Lista de Compras** organiza categorias, itens, links de lojas, jogos e dados
+financeiros em uma conta Supabase. Dados de negócio devem estar disponíveis em
+mais de um dispositivo; preferências visuais podem permanecer no dispositivo.
 
 O objetivo atual é consolidar uma coluna funcional simples e confiável, não
 criar um comparador universal, uma plataforma de comércio eletrônico ou uma
@@ -16,20 +16,21 @@ sincronização distribuída.
 ## Arquitetura e fronteiras
 
 ```text
-src/                         React + TypeScript, rotas e adaptadores Tauri
-src-tauri/src/commands/      comandos públicos chamados por `invoke`
-src-tauri/src/db/            conexão, esquema e evolução do SQLite
-src-tauri/src/models/        dados serializados de saída
+src/                         React + TypeScript, rotas e adaptadores de feature
+src/services/supabase.ts     cliente Supabase e sessão Supabase Auth
+supabase/migrations/         esquema remoto e políticas RLS
+src-tauri/src/commands/      capacidades nativas sem persistência de negócio
 ```
 
-- O frontend chama capacidades nativas somente por adaptadores em
-  `src/features/*/api.ts`.
-- SQLite, migrações, rede de preços e regras de persistência pertencem ao Rust.
-- Cada comando registrado em `src-tauri/src/lib.rs` é um contrato público entre
-  TypeScript e Rust. Alterá-lo exige atualizar os dois lados e a documentação.
-- IDs inteiros são locais ao banco; UUIDs são a identidade portátil para
-  operações explícitas de upsert.
-- Supabase é opcional e não é a fonte local de verdade atual.
+- O frontend chama Supabase somente por adaptadores em `src/features/*/api.ts`.
+- Dados de negócio persistem em Supabase. Tauri pode oferecer busca de preços,
+  mas não é fonte de verdade nem fallback de dados.
+- Cada comando nativo registrado em `src-tauri/src/lib.rs` é um contrato público
+  entre TypeScript e Rust. Alterá-lo exige atualizar os dois lados e a documentação.
+- Registros remotos usam UUID portátil e `owner_id`; RLS deriva o usuário da
+  sessão autenticada e impede acesso entre contas.
+- SQLite existente é legado de migração. Não o remova até verificar a importação
+  para Supabase e os vínculos dos dados existentes.
 - O financeiro possui sua visão, arquitetura e contrato em `docs/finance/`.
   Leia-os antes de alterar cálculos, dados financeiros ou sua integração com
   compras/desejos.
@@ -38,10 +39,12 @@ Não mova responsabilidades entre essas camadas sem decisão documentada.
 
 ## Princípios
 
-- **Local-first:** a lista deve ser útil sem conta, rede ou API externa.
+- **Cloud-first:** dados de negócio pertencem à conta; falha de rede não grava
+  silenciosamente em outro armazenamento.
 - **Menor mudança útil:** não antecipar UI, sincronização, autenticação ou
   abstrações que não atendam a uma necessidade presente.
-- **Dados preservados:** migrações devem preservar bases e UUIDs existentes.
+- **Dados preservados:** importações devem preservar registros, UUIDs e relações;
+  só remova a cópia local após verificação explícita.
 - **Contratos explícitos:** mantenha nomes, payloads, erros e limites claros.
 - **Segurança por padrão:** nunca versione tokens, bancos locais ou dados do
   usuário; não transfira `SERPAPI_KEY` para o frontend.
@@ -53,8 +56,8 @@ Não mova responsabilidades entre essas camadas sem decisão documentada.
   ação na UI sem confirmação adequada.
 - Toda mudança de esquema deve ser segura para bases existentes; não recrie o
   banco do usuário como atalho.
-- Consultas externas possuem timeout, podem falhar e não podem bloquear o fluxo
-  de lista local.
+- Consultas externas possuem timeout e não podem bloquear operações de dados já
+  carregados; falhas de Supabase devem ser mostradas, sem modo offline implícito.
 
 ## Processo de trabalho
 

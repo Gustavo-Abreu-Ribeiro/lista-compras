@@ -90,10 +90,9 @@ pub struct ShoppingOffer {
 #[command]
 pub fn fetch_top_shopping_offers(
     query: String,
-    api_key: Option<String>,
 ) -> Result<Vec<ShoppingOffer>, String> {
-    let api_key = match api_key {
-        Some(value) if !value.trim().is_empty() => value,
+    let api_key = match std::env::var("SERPAPI_KEY") {
+        Ok(value) if !value.trim().is_empty() => value,
         _ => return Ok(vec![]),
     };
 
@@ -313,10 +312,9 @@ pub struct StoreOffer {
 pub fn fetch_store_offer(
     query: String,
     store: String,
-    api_key: Option<String>,
 ) -> Result<Option<StoreOffer>, String> {
-    let api_key = match api_key {
-        Some(value) if !value.trim().is_empty() => value,
+    let api_key = match std::env::var("SERPAPI_KEY") {
+        Ok(value) if !value.trim().is_empty() => value,
         _ => return Ok(None),
     };
 

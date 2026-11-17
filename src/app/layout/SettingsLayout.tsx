@@ -1,13 +1,27 @@
 ﻿import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import AppNavigation from "./AppNavigation"
 import type { Session } from "@supabase/supabase-js"
-import { getActiveListId, getListId, setListId, supabase } from "../../services/supabase"
+import { isTauri } from "@tauri-apps/api/core"
+import { supabase } from "../../services/supabase"
+import { getLegacyMigrationStatus, importLegacyData, removeLegacyDatabase } from "../../features/migration/api"
 
 export default function SettingsLayout() {
-  const themes = ["light", "dark", "ocean", "sunset"] as const
+  const themes = ["light", "ocean", "sunset", "dark", "berry", "blueprint", "citrus", "cartucho"] as const
+  const themeNames: Record<(typeof themes)[number], string> = {
+    light: "Feira",
+    ocean: "Horta",
+    sunset: "Barro",
+    dark: "Noite",
+    berry: "Jabuticaba",
+    blueprint: "Azulejo",
+    citrus: "Limão",
+    cartucho: "Cartucho",
+  }
   const [themeIndex, setThemeIndex] = useState(0)
-  const [listId, setListIdState] = useState("")
   const [session, setSession] = useState<Session | null>(null)
+  const [legacyStatus, setLegacyStatus] = useState<{ databaseExists: boolean; imported: boolean } | null>(null)
+  const [migrationBusy, setMigrationBusy] = useState(false)
+  const [migrationNotice, setMigrationNotice] = useState("")
 
   useEffect(() => {
     const stored = localStorage.getItem("lista-compras:theme")
@@ -35,12 +49,11 @@ export default function SettingsLayout() {
   }, [])
 
   useEffect(() => {
-    if (session?.user?.id) {
-      setListIdState(getActiveListId(session))
-    } else {
-      setListIdState(getListId())
-    }
-  }, [session])
+    if (!isTauri()) return
+    getLegacyMigrationStatus().then(setLegacyStatus).catch((error) => {
+      setMigrationNotice(error instanceof Error ? error.message : String(error))
+    })
+  }, [])
 
   function applyTheme(theme: (typeof themes)[number]) {
     const index = themes.indexOf(theme)
@@ -49,135 +62,106 @@ export default function SettingsLayout() {
     localStorage.setItem("lista-compras:theme", theme)
   }
 
-  function applyListId() {
-    const trimmed = listId.trim()
-    if (!trimmed) return
-    setListId(trimmed)
-    setListIdState(trimmed)
-  }
-
-  async function copyListId() {
-    if (!listId) return
-    try {
-      await navigator.clipboard.writeText(listId)
-    } catch {
-      // ignore clipboard issues
-    }
-  }
-
   async function signOut() {
     if (!supabase) return
     await supabase.auth.signOut()
   }
 
+  async function migrateLocalData() {
+    setMigrationBusy(true)
+    setMigrationNotice("")
+    try {
+      const result = await importLegacyData()
+      setLegacyStatus({ databaseExists: true, imported: true })
+      setMigrationNotice(result.alreadyImported
+        ? "A importação já foi concluída e conferida."
+        : `Importação conferida: ${Object.values(result.counts).reduce((sum, count) => sum + count, 0)} registros enviados.`)
+    } catch (error) {
+      setMigrationNotice(error instanceof Error ? error.message : String(error))
+    } finally {
+      setMigrationBusy(false)
+    }
+  }
+
+  async function deleteLocalCopy() {
+    if (!legacyStatus?.imported) return
+    const confirmed = window.confirm("A importação cloud foi concluída. Remover definitivamente a cópia SQLite deste computador? Compras e finanças continuarão disponíveis na conta Supabase.")
+    if (!confirmed) return
+    setMigrationBusy(true)
+    try {
+      await removeLegacyDatabase()
+      setLegacyStatus({ databaseExists: false, imported: true })
+      setMigrationNotice("A cópia SQLite local foi removida.")
+    } catch (error) {
+      setMigrationNotice(error instanceof Error ? error.message : String(error))
+    } finally {
+      setMigrationBusy(false)
+    }
+  }
+
   return (
     <div className="page">
-      <nav className="top-nav">
-        <div className="brand">
-          <span className="badge">Lista</span>
-        </div>
-        <div className="nav-links">
-          <Link to="/" className="btn btn-ghost">
-            Compras
-          </Link>
-          <Link to="/games" className="btn btn-ghost">
-            Jogos
-          </Link>
-          <Link to="/settings" className="btn btn-secondary">
-            Ajustes
-          </Link>
-        </div>
-      </nav>
+      <AppNavigation />
 
-      <div className="intro-shell">
+      <div className="intro-shell settings-shell">
+        <span className="cartucho-session" aria-hidden="true">SESSION 05 // 設定 // CONFIG</span>
         <section className="sync-card">
           <div className="sync-header">
             <div>
               <p className="eyebrow">Perfil</p>
               <h2>Conta</h2>
-              <p className="muted">
-                Gerencie sua sessao e sincronizacao.
-              </p>
+              <p className="muted">Seus dados acompanham a conta Supabase.</p>
             </div>
             {session?.user?.email && (
               <span className="badge">{session.user.email}</span>
             )}
           </div>
 
-          {session ? (
-            <div className="sync-actions">
-              <p className="muted">Sessao ativa.</p>
-              <button className="btn btn-ghost" onClick={signOut}>
-                Sair
-              </button>
-            </div>
-          ) : (
-            <div className="sync-actions">
-              <p className="muted">Voce nao esta conectado.</p>
-              <Link to="/login" className="btn btn-secondary">
-                Entrar
-              </Link>
-            </div>
-          )}
+          <div className="sync-actions">
+            <p className="muted">Conectado.</p>
+            <button className="btn btn-ghost" onClick={signOut}>Sair</button>
+          </div>
         </section>
+
+        {isTauri() && legacyStatus?.databaseExists && <section className="sync-card">
+          <div>
+            <p className="eyebrow">Migração de dados</p>
+            <h2>{legacyStatus.imported ? "Dados conferidos na nuvem" : "Trazer dados deste dispositivo"}</h2>
+            <p className="muted">A importação preserva IDs portáteis e relações. A cópia local só é removida depois de confirmar.</p>
+          </div>
+          {migrationNotice && <p className="finance-notice" role="status">{migrationNotice}</p>}
+          <div className="sync-actions">
+            <button className="btn btn-secondary" onClick={migrateLocalData} disabled={migrationBusy}>
+              {migrationBusy ? "Processando…" : legacyStatus.imported ? "Conferir importação" : "Importar para minha conta"}
+            </button>
+            {legacyStatus.imported && <button className="btn btn-ghost" onClick={deleteLocalCopy} disabled={migrationBusy}>Remover cópia local</button>}
+          </div>
+        </section>}
 
         <section className="sync-card">
           <div>
-            <p className="eyebrow">Tema</p>
-            <h2>Aparencia</h2>
-            <p className="muted">Escolha a paleta que combina com voce.</p>
+            <p className="eyebrow">Visual</p>
+            <h2>Aparência</h2>
+            <p className="muted">Escolha a identidade visual do app. Cartucho transforma a navegação e as telas com um toque.</p>
           </div>
           <div className="theme-grid">
             {themes.map((theme) => (
               <button
                 key={theme}
-                className={`btn ${themeIndex === themes.indexOf(theme) ? "btn-secondary" : "btn-ghost"}`}
+                className={`btn theme-choice theme-${theme} ${themeIndex === themes.indexOf(theme) ? "is-selected" : ""}`}
+                aria-pressed={themeIndex === themes.indexOf(theme)}
                 onClick={() => applyTheme(theme)}
               >
-                {theme}
+                <span className="theme-swatch" aria-hidden="true" />
+                {themeNames[theme]}
+                {theme === "cartucho" && <small className="cartucho-theme-detail">Navegação, painéis e jogos em nova identidade</small>}
               </button>
             ))}
           </div>
         </section>
 
-        {!session && (
-          <section className="sync-card">
-            <div>
-              <p className="eyebrow">Sincronizacao</p>
-              <h2>Codigo manual</h2>
-              <p className="muted">
-                Use o mesmo codigo em todos os dispositivos para ver os mesmos
-                dados.
-              </p>
-            </div>
-            <div className="sync-row">
-              <input
-                className="input"
-                value={listId}
-                onChange={(event) => setListIdState(event.target.value)}
-              />
-              <button className="btn btn-secondary" onClick={applyListId}>
-                Usar
-              </button>
-            </div>
-            <button className="btn btn-ghost" onClick={copyListId}>
-              Copiar codigo
-            </button>
-          </section>
-        )}
       </div>
 
-      <div className="bottom-nav">
-        <Link to="/" className="nav-link">
-          Compras
-        </Link>
-        <Link to="/games" className="nav-link">
-          Jogos
-        </Link>
-        <Link to="/settings" className="nav-link">
-          Ajustes
-        </Link>
-      </div>
     </div>
   )
 }

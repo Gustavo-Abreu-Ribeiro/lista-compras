@@ -1,5 +1,10 @@
 # Financeiro pessoal
 
+Dados antigos da demonstração podem ser removidos pela interface apenas quando
+a fixture original completa é reconhecida sem alterações nem vínculos externos.
+A limpeza exige confirmação, revalida os registros em transação e não é executada
+automaticamente.
+
 Esta é a especificação canônica do módulo financeiro da Lista de Compras. Ela
 preserva a visão do pedido do produto: fornecer clareza, previsibilidade e
 simulações úteis — nunca julgamento — a partir de dados locais do usuário.
@@ -39,3 +44,5 @@ produto-alvo; só os itens marcados como entregues no
 - [Contrato de cálculos](calculation-contract.md)
 - [Roadmap por fases](roadmap.md)
 - [ADR-001: valores em centavos](../adr/ADR-001-financial-values-in-cents.md)
+- [ADR-003: recorrências e dívidas](../adr/ADR-003-financial-recurrences-and-debts.md)
+- [ADR-004: categorias, limites e pagamentos](../adr/ADR-004-finance-category-and-payment-flows.md)

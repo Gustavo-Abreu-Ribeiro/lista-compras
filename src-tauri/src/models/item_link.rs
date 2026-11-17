@@ -10,3 +10,11 @@ pub struct ItemLink {
     pub price: Option<f64>,
     pub created_at: String,
 }
+
+#[derive(Debug, Serialize)]
+pub struct ItemLinkPricePoint {
+    pub id: i32,
+    pub item_link_id: i32,
+    pub price: f64,
+    pub observed_at: String,
+}

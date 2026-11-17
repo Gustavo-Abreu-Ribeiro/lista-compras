@@ -63,6 +63,26 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
     backfill_uuid(conn, "items")?;
     backfill_uuid(conn, "item_links")?;
 
+    let _ = conn.execute("ALTER TABLE item_links ADD COLUMN last_checked_at TEXT", []);
+    conn.execute_batch(
+        "
+        CREATE TABLE IF NOT EXISTS item_link_price_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_link_id INTEGER NOT NULL,
+            price REAL NOT NULL CHECK(price > 0),
+            observed_at TEXT NOT NULL,
+            UNIQUE(item_link_id, price, observed_at),
+            FOREIGN KEY(item_link_id) REFERENCES item_links(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_item_link_price_history_link_time
+            ON item_link_price_history(item_link_id, observed_at);
+        CREATE INDEX IF NOT EXISTS idx_item_links_last_checked
+            ON item_links(last_checked_at);
+        INSERT OR IGNORE INTO item_link_price_history(item_link_id, price, observed_at)
+            SELECT id, price, created_at FROM item_links WHERE price > 0;
+        "
+    ).map_err(|e| format!("Erro ao criar histórico de preços: {e}"))?;
+
     conn.execute_batch(
         "
         CREATE TABLE IF NOT EXISTS financial_accounts (
@@ -99,14 +119,42 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
             contribution_ideal_cents INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
         );
         CREATE TABLE IF NOT EXISTS financial_budgets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, category_id INTEGER NOT NULL, month TEXT NOT NULL,
-            limit_cents INTEGER NOT NULL CHECK(limit_cents >= 0), UNIQUE(category_id, month),
+            id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT UNIQUE,
+            category_id INTEGER NOT NULL, month TEXT NOT NULL,
+            limit_cents INTEGER NOT NULL CHECK(limit_cents >= 0), created_at TEXT,
+            UNIQUE(category_id, month),
             FOREIGN KEY(category_id) REFERENCES financial_categories(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS financial_recurrences (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT NOT NULL UNIQUE,
+            kind TEXT NOT NULL CHECK(kind IN ('income','expense')),
+            description TEXT NOT NULL, amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
+            day_of_month INTEGER NOT NULL CHECK(day_of_month BETWEEN 1 AND 31),
+            start_month TEXT NOT NULL, category_id INTEGER, account_id INTEGER,
+            active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL,
+            FOREIGN KEY(category_id) REFERENCES financial_categories(id),
+            FOREIGN KEY(account_id) REFERENCES financial_accounts(id)
+        );
+        CREATE TABLE IF NOT EXISTS financial_debts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL, balance_cents INTEGER NOT NULL CHECK(balance_cents >= 0),
+            monthly_payment_cents INTEGER NOT NULL DEFAULT 0 CHECK(monthly_payment_cents >= 0),
+            due_day INTEGER CHECK(due_day BETWEEN 1 AND 31), created_at TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_financial_transactions_date ON financial_transactions(occurred_on);
         CREATE INDEX IF NOT EXISTS idx_financial_installments_due ON financial_installments(due_on);
         "
     ).map_err(|e| format!("Erro ao criar tabelas financeiras: {e}"))?;
+
+    let _ = conn.execute("ALTER TABLE financial_transactions ADD COLUMN recurrence_id INTEGER REFERENCES financial_recurrences(id)", []);
+    let _ = conn.execute("ALTER TABLE financial_transactions ADD COLUMN recurrence_month TEXT", []);
+    let _ = conn.execute("ALTER TABLE financial_transactions ADD COLUMN installment_id INTEGER REFERENCES financial_installments(id)", []);
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_financial_transactions_recurrence_month ON financial_transactions(recurrence_id, recurrence_month)", []).map_err(|e| format!("Erro ao indexar recorrências financeiras: {e}"))?;
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_financial_transactions_installment ON financial_transactions(installment_id)", []).map_err(|e| format!("Erro ao indexar lançamentos de parcelas: {e}"))?;
+
+    ensure_uuid_column(conn, "financial_budgets");
+    let _ = conn.execute("ALTER TABLE financial_budgets ADD COLUMN created_at TEXT", []);
+    backfill_uuid(conn, "financial_budgets")?;
 
     Ok(())
 }

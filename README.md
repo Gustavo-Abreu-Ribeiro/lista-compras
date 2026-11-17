@@ -1,13 +1,14 @@
 # Lista de Compras
 
-Aplicativo local-first para organizar categorias, itens e links de compra, com
-interface React executada pelo Tauri e persistência SQLite no dispositivo.
+Aplicativo de gestão pessoal com interface React executada pelo Tauri. A
+migração em andamento move compras, jogos e finanças para Supabase Auth/Postgres
+com isolamento por usuário; o SQLite permanece legado até a migração dos dados.
 
 ## Estado atual
 
-- Categorias, itens e links de lojas são persistidos localmente.
-- Cada registro possui UUID para suportar importação/sincronização explícita no
-  futuro; não há sincronização automática implementada.
+- Compras, jogos, histórico de preços e finanças usam Supabase Auth/Postgres
+  com isolamento por usuário. O SQLite antigo serve apenas como origem da
+  importação e só é removido após conferência explícita.
 - Há consultas auxiliares de preços por URL e, opcionalmente, Google Shopping
   via SerpApi. Elas dependem de rede e não garantem preço ou estoque.
 - A estrutura de rotas existe, mas a interface completa da lista está em evolução.
@@ -15,27 +16,25 @@ interface React executada pelo Tauri e persistência SQLite no dispositivo.
 Consulte o [estado verificado](docs/state/CURRENT.md) antes de assumir que uma
 funcionalidade está pronta.
 
-O módulo [Financeiro pessoal](docs/finance/README.md) está em Fase 1: a
-fundação local e o dashboard inicial existem no código, mas a validação de fluxo
-em runtime ainda está em curso. Veja [DOING.md](DOING.md) para retomar sem
-depender de contexto de conversa.
+Em **Ajustes > Aparência**, o botão **Cartucho** aplica a identidade escura com
+sidebar numerada, painéis chanfrados e moldura na área de Jogos. A seleção é
+salva no dispositivo. Veja [as regras visuais](docs/DESIGN.md).
 
-## Arquitetura
+O módulo [Financeiro pessoal](docs/finance/README.md) já possui contas,
+movimentos, planejamento, metas e dívidas. A integração cloud depende de aplicar
+o SQL do Supabase e validar os fluxos no runtime. Veja [DOING.md](DOING.md) para
+o próximo passo.
+
+## Arquitetura-alvo (em migração)
 
 ```text
-React + TypeScript (src/)
+React + TypeScript (src/) -- Supabase Auth + Postgres/RLS
         |
-        | Tauri invoke
-        v
-Rust commands (src-tauri/src/commands/)
-        |
-        v
-SQLite local (dados do aplicativo)
+        +-- Tauri (buscas externas de preço, sem persistência de negócio)
 ```
 
-O frontend não acessa SQLite diretamente. Os comandos Rust são a fronteira
-entre interface e dados. Veja a [arquitetura](docs/architecture.md) e os
-[contratos](docs/contracts/README.md).
+Veja [ADR-005](docs/adr/ADR-005-supabase-cloud-data.md), a
+[arquitetura](docs/architecture.md) e os [contratos](docs/contracts/README.md).
 
 ## Desenvolvimento
 
@@ -46,6 +45,8 @@ npm install
 npm run tauri dev
 ```
 
+Configure `.env.local` com base em `.env.example` antes de acessar dados cloud.
+
 ```bash
 npm run build
 npm run tauri build
@@ -55,18 +56,20 @@ cargo check --manifest-path src-tauri/Cargo.toml
 `npm run dev` inicia somente o Vite; use `npm run tauri dev` para a integração
 com comandos nativos.
 
-## Configuração opcional
+## Configuração Supabase
 
 Não versione chaves ou URLs privadas.
 
 | Variável | Uso |
 | --- | --- |
 | `VITE_SUPABASE_URL` | habilita o cliente Supabase no frontend |
-| `VITE_SUPABASE_ANON_KEY` | chave pública/anon do cliente Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | chave pública para o cliente Supabase (com RLS ativo) |
+| `VITE_SUPABASE_ANON_KEY` | nome legado aceito durante a transição |
 | `SERPAPI_KEY` | consulta Google Shopping no processo Rust |
 
-Sem Supabase, o cliente fica indisponível. Sem `SERPAPI_KEY`, consultas SerpApi
-retornam resultado vazio.
+Execute `supabase/migrations/202611160001_initial_cloud_schema.sql` no projeto
+destino. Nunca use `service_role` ou secret key no frontend. A migração dos dados
+locais deve ser conferida antes da remoção do SQLite.
 
 ## Trabalho colaborativo e agentes
 

@@ -15,7 +15,15 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
-*(Sem trabalho ativo no momento. A Fase 1 Financeira foi concluída.)*
+## CLOUD-001 - Migrar persistência para Supabase
+
+- Status: in progress
+- Owner/lane: agente autonomo
+- Scope: fazer Supabase Auth/Postgres/RLS a fonte de dados de compras, preços, jogos e finanças; eliminar SQLite depois da importação verificada.
+- Boundaries: preservar base SQLite, UUIDs e relações; nunca expor chave `secret`/`service_role` no cliente.
+- Evidence: adapters cloud e autenticação foram implementados; importador SQLite exporta em modo leitura e exige confirmação antes de remover a base. Configuração local ignorada pelo Git.
+- Next step: validar fluxos CRUD/Auth/RLS em Tauri, corrigir UX financeira reportada, importar os dados e conferir isolamento por usuário.
+- Updated: 2026-11-16
 
 ## Modelo de entrada
 

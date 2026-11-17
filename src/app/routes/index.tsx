@@ -1,22 +1,24 @@
-﻿import { createBrowserRouter, Navigate } from "react-router-dom"
+﻿import { createBrowserRouter } from "react-router-dom"
 import AppLayout from "../layout/AppLayout"
 import GameLayout from "../layout/GameLayout"
 import LoginLayout from "../layout/LoginLayout"
 import SettingsLayout from "../layout/SettingsLayout"
 import FinanceLayout from "../layout/FinanceLayout"
+import HomeLayout from "../layout/HomeLayout"
+import RequireAuth from "../layout/RequireAuth"
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <AppLayout />,
+    element: <RequireAuth><HomeLayout /></RequireAuth>,
   },
   {
     path: "/shopping",
-    element: <Navigate to="/" replace />,
+    element: <RequireAuth><AppLayout /></RequireAuth>,
   },
   {
     path: "/games",
-    element: <GameLayout />,
+    element: <RequireAuth><GameLayout /></RequireAuth>,
   },
   {
     path: "/login",
@@ -24,10 +26,10 @@ export const router = createBrowserRouter([
   },
   {
     path: "/settings",
-    element: <SettingsLayout />,
+    element: <RequireAuth><SettingsLayout /></RequireAuth>,
   },
   {
     path: "/finance",
-    element: <FinanceLayout />,
+    element: <RequireAuth><FinanceLayout /></RequireAuth>,
   },
 ])

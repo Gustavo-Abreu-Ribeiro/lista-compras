@@ -1,6 +1,6 @@
-﻿import { useEffect, useRef, useState } from "react"
-import type { Session } from "@supabase/supabase-js"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import type { FormEvent } from "react"
+import AppNavigation from "./AppNavigation"
 import {
   listCategories,
   createCategory,
@@ -13,18 +13,14 @@ import {
 } from "../../features/items/api"
 import {
   listLinksByItem,
+  listItemLinkPriceHistory,
+  type ItemLinkPricePoint,
   createLink,
   deleteLink,
   fetchPriceFromUrl,
   fetchAveragePriceGoogleShopping,
   fetchStoreOffer,
 } from "../../features/itemLinks/api"
-import {
-  upsertCategory,
-  upsertItem,
-  upsertItemLink,
-} from "../../features/sync/api"
-import { getActiveListId, supabase } from "../../services/supabase"
 import { Category } from "../../types/Category"
 import { Item } from "../../types/Item"
 import { ItemLink } from "../../types/ItemLink"
@@ -33,6 +29,7 @@ export default function AppLayout() {
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [links, setLinks] = useState<ItemLink[]>([])
+  const [priceHistory, setPriceHistory] = useState<ItemLinkPricePoint[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [modalType, setModalType] = useState<
@@ -40,29 +37,14 @@ export default function AppLayout() {
   >(null)
   const [categoryName, setCategoryName] = useState("")
   const [itemName, setItemName] = useState("")
+  const [itemCategoryChoice, setItemCategoryChoice] = useState("")
+  const [newItemCategoryName, setNewItemCategoryName] = useState("")
   const [storeName, setStoreName] = useState("")
   const [productUrl, setProductUrl] = useState("")
   const [priceValue, setPriceValue] = useState("")
-  const restoreCategoryId = useRef<number | null>(null)
-  const restoreItemId = useRef<number | null>(null)
-  const hasHydrated = useRef(false)
-  const cloudReady = useRef(false)
-  const syncTimer = useRef<number | null>(null)
-  useEffect(() => {
-    if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session ?? null)
-    })
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession)
-      }
-    )
-    return () => {
-      subscription?.subscription?.unsubscribe()
-    }
-  }, [])
-  const [session, setSession] = useState<Session | null>(null)
+  const [linkError, setLinkError] = useState("")
+  const [isSavingLink, setIsSavingLink] = useState(false)
+  const [dataError, setDataError] = useState("")
 
   function openCategoryModal() {
     setCategoryName("")
@@ -70,8 +52,9 @@ export default function AppLayout() {
   }
 
   function openItemModal() {
-    if (!selectedCategory) return
     setItemName("")
+    setItemCategoryChoice(selectedCategory ? String(selectedCategory.id) : categories.length === 0 ? "__new__" : "")
+    setNewItemCategoryName("")
     setModalType("item")
   }
 
@@ -80,165 +63,12 @@ export default function AppLayout() {
     setStoreName("")
     setProductUrl("")
     setPriceValue("")
+    setLinkError("")
     setModalType("link")
   }
 
   function closeModal() {
     setModalType(null)
-  }
-
-  async function syncShoppingFromCloud() {
-    if (!supabase) {
-      cloudReady.current = true
-      return
-    }
-
-    const listId = getActiveListId(session)
-    try {
-      const { data: cloudCategories } = await supabase
-        .from("categories")
-        .select("id,name,created_at,deleted_at")
-        .eq("list_id", listId)
-        .is("deleted_at", null)
-
-      if (cloudCategories && cloudCategories.length > 0) {
-        for (const category of cloudCategories) {
-          await upsertCategory(category.id, category.name, category.created_at)
-        }
-      }
-
-      const { data: cloudItems } = await supabase
-        .from("items")
-        .select("id,name,category_id,notes,created_at,deleted_at")
-        .eq("list_id", listId)
-        .is("deleted_at", null)
-
-      if (cloudItems && cloudItems.length > 0) {
-        const validCategoryIds = new Set(
-          (cloudCategories ?? []).map((category) => category.id)
-        )
-        for (const item of cloudItems.filter((i) => validCategoryIds.has(i.category_id))) {
-          await upsertItem(
-            item.id,
-            item.name,
-            item.category_id,
-            item.notes,
-            item.created_at
-          )
-        }
-      }
-
-      const { data: cloudLinks } = await supabase
-        .from("item_links")
-        .select("id,item_id,store_name,url,price,created_at,deleted_at")
-        .eq("list_id", listId)
-        .is("deleted_at", null)
-
-      if (cloudLinks && cloudLinks.length > 0) {
-        const validItemIds = new Set(
-          (cloudItems ?? []).map((item) => item.id)
-        )
-        for (const link of cloudLinks.filter((l) => validItemIds.has(l.item_id))) {
-          await upsertItemLink(
-            link.id,
-            link.item_id,
-            link.store_name,
-            link.url,
-            link.price,
-            link.created_at
-          )
-        }
-      }
-    } catch {
-      // ignore cloud issues
-    } finally {
-      cloudReady.current = true
-    }
-  }
-
-  async function syncShoppingToCloud() {
-    if (!supabase) return
-    const listId = getActiveListId(session)
-
-    const categoryRows = categories.map((category) => ({
-      id: category.uuid,
-      list_id: listId,
-      name: category.name,
-      created_at: category.created_at,
-    }))
-
-    if (categoryRows.length > 0) {
-      await supabase.from("categories").upsert(categoryRows, {
-        onConflict: "id",
-      })
-    }
-
-    const allItems: Item[] = []
-    const allLinks: ItemLink[] = []
-
-    for (const category of categories) {
-      const itemsForCategory = await listItemsByCategory(category.id)
-      allItems.push(...itemsForCategory)
-      for (const item of itemsForCategory) {
-        const linksForItem = await listLinksByItem(item.id)
-        allLinks.push(...linksForItem)
-      }
-    }
-
-    if (allItems.length > 0) {
-      const itemRows = allItems
-        .map((item) => {
-          const categoryUuid = categories.find(
-            (c) => c.id === item.category_id
-          )?.uuid
-          if (!categoryUuid) return null
-          return {
-            id: item.uuid,
-            list_id: listId,
-            name: item.name,
-            category_id: categoryUuid,
-            notes: item.notes ?? null,
-            created_at: item.created_at,
-          }
-        })
-        .filter(Boolean)
-
-      if (itemRows.length > 0) {
-        await supabase.from("items").upsert(itemRows, { onConflict: "id" })
-      }
-    }
-
-    if (allLinks.length > 0) {
-      const linkRows = allLinks
-        .map((link) => {
-          const itemUuid = allItems.find((i) => i.id === link.item_id)?.uuid
-          if (!itemUuid) return null
-          return {
-            id: link.uuid,
-            list_id: listId,
-            item_id: itemUuid,
-            store_name: link.store_name,
-            url: link.url,
-            price: link.price,
-            created_at: link.created_at,
-          }
-        })
-        .filter(Boolean)
-
-      if (linkRows.length > 0) {
-        await supabase
-          .from("item_links")
-          .upsert(linkRows, { onConflict: "id" })
-      }
-    }
-  }
-
-  function queueShoppingSync() {
-    if (!cloudReady.current || !supabase) return
-    if (syncTimer.current) window.clearTimeout(syncTimer.current)
-    syncTimer.current = window.setTimeout(() => {
-      syncShoppingToCloud()
-    }, 800)
   }
 
   /* ---------------- CATEGORIES ---------------- */
@@ -247,16 +77,6 @@ export default function AppLayout() {
     const loadedCategories = await listCategories()
     setCategories(loadedCategories)
 
-    if (restoreCategoryId.current) {
-      const cachedCategory = loadedCategories.find(
-        (category) => category.id === restoreCategoryId.current
-      )
-      if (cachedCategory) {
-        setSelectedCategory(cachedCategory)
-        loadItems(cachedCategory.id)
-      }
-      restoreCategoryId.current = null
-    }
   }
 
   async function addCategory() {
@@ -272,21 +92,13 @@ export default function AppLayout() {
 
   async function removeCategory(category: Category) {
     if (!confirm(`Remover categoria "${category.name}"?`)) return
-    if (supabase) {
-      const listId = getActiveListId(session)
-      const now = new Date().toISOString()
-      await supabase
-        .from("categories")
-        .update({ deleted_at: now })
-        .eq("id", category.uuid)
-        .eq("list_id", listId)
-    }
     await deleteCategory(category.id)
 
     setSelectedCategory(null)
     setSelectedItem(null)
     setItems([])
     setLinks([])
+    setPriceHistory([])
 
     loadCategories()
   }
@@ -298,42 +110,37 @@ export default function AppLayout() {
     setItems(loadedItems)
     setSelectedItem(null)
     setLinks([])
+    setPriceHistory([])
 
-    if (restoreItemId.current) {
-      const cachedItem = loadedItems.find(
-        (item) => item.id === restoreItemId.current
-      )
-      if (cachedItem) {
-        setSelectedItem(cachedItem)
-        loadLinks(cachedItem.id)
-      }
-      restoreItemId.current = null
-    }
   }
 
   async function addItem() {
     openItemModal()
   }
 
-  async function submitItem() {
-    if (!selectedCategory) return
+  async function submitItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     if (!itemName.trim()) return
-    await createItem(itemName.trim(), selectedCategory.id)
-    loadItems(selectedCategory.id)
+
+    let category = categories.find((candidate) => String(candidate.id) === itemCategoryChoice)
+    if (itemCategoryChoice === "__new__") {
+      const name = newItemCategoryName.trim()
+      if (!name) return
+      await createCategory(name)
+      const refreshedCategories = await listCategories()
+      category = refreshedCategories.find((candidate) => candidate.name.toLocaleLowerCase() === name.toLocaleLowerCase())
+      setCategories(refreshedCategories)
+    }
+    if (!category) return
+
+    await createItem(itemName.trim(), category.id)
+    setSelectedCategory(category)
+    await loadItems(category.id)
     closeModal()
   }
 
   async function removeItem(item: Item) {
     if (!confirm(`Remover item "${item.name}"?`)) return
-    if (supabase) {
-      const listId = getActiveListId(session)
-      const now = new Date().toISOString()
-      await supabase
-        .from("items")
-        .update({ deleted_at: now })
-        .eq("id", item.uuid)
-        .eq("list_id", listId)
-    }
     await deleteItem(item.id)
     if (selectedCategory) loadItems(selectedCategory.id)
   }
@@ -341,78 +148,91 @@ export default function AppLayout() {
   /* ---------------- LINKS ---------------- */
 
   async function loadLinks(itemId: number) {
-    setLinks(await listLinksByItem(itemId))
+    const linkRows = await listLinksByItem(itemId)
+    const history = await listItemLinkPriceHistory(itemId).catch(() => [])
+    setLinks(linkRows)
+    setPriceHistory(history)
   }
 
   async function addLink() {
     openLinkModal()
   }
 
-  async function submitLink() {
-    if (!selectedItem) return
-    const storeNameRaw = storeName.trim()
-    const urlRaw = productUrl.trim()
-    const priceRaw = priceValue.trim()
+  async function submitLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!selectedItem) {
+      setLinkError("Selecione um item antes de adicionar uma loja.")
+      return
+    }
 
-    const parsedPrice = priceRaw ? Number(priceRaw.replace(",", ".")) : undefined
-    const price = Number.isNaN(parsedPrice) ? undefined : parsedPrice
-
-    let finalUrl = urlRaw
-    let finalStoreName = storeNameRaw
-
-    let finalPrice = price
-
-    if (!finalPrice && urlRaw) {
-      try {
-        const fetchedPrice = await fetchPriceFromUrl(urlRaw)
-        if (typeof fetchedPrice === "number") finalPrice = fetchedPrice
-      } catch {
-        // ignore fetch issues
+    setLinkError("")
+    setIsSavingLink(true)
+    try {
+      const storeNameRaw = storeName.trim()
+      const urlInput = productUrl.trim()
+      const priceRaw = priceValue.trim()
+      const parsedPrice = priceRaw ? Number(priceRaw.replace(",", ".")) : undefined
+      if (priceRaw && (!Number.isFinite(parsedPrice) || (parsedPrice ?? 0) <= 0)) {
+        setLinkError("Informe um preço maior que zero, como 120,50.")
+        return
       }
 
-      if (!finalPrice && /amazon\./i.test(urlRaw)) {
+      let finalPrice = parsedPrice
+      let finalUrl = ""
+      if (urlInput) {
+        const normalizedUrl = /^https?:\/\//i.test(urlInput) ? urlInput : `https://${urlInput}`
+        let parsedUrl: URL
         try {
-          const offer = await fetchStoreOffer(
-            selectedItem.name,
-            "amazon",
-            import.meta.env.VITE_SERPAPI_KEY
-          )
-          if (offer) {
-            finalPrice = offer.price
-            if (!finalStoreName) finalStoreName = offer.store_name
-          }
+          parsedUrl = new URL(normalizedUrl)
+          if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error("protocolo")
         } catch {
-          // ignore fetch issues
+          setLinkError("Confira o endereço da loja. Exemplo: https://loja.com/produto")
+          return
+        }
+        finalUrl = parsedUrl.toString()
+        if (!finalPrice) {
+          try {
+            const fetchedPrice = await fetchPriceFromUrl(finalUrl)
+            if (typeof fetchedPrice === "number") finalPrice = fetchedPrice
+          } catch {
+            // O link ainda pode ser salvo se a loja não permitir ler o preço.
+          }
+        }
+        if (!finalPrice && /amazon\./i.test(parsedUrl.hostname)) {
+          try {
+            const offer = await fetchStoreOffer(selectedItem.name, "amazon")
+            if (offer) finalPrice = offer.price
+          } catch {
+            // A consulta externa é auxiliar; não impede salvar o endereço.
+          }
+        }
+      } else {
+        const query = encodeURIComponent(`${selectedItem.name} ${storeNameRaw}`.trim())
+        finalUrl = `https://www.google.com/search?tbm=shop&q=${query}`
+        if (!finalPrice) {
+          try {
+            const averagePrice = await fetchAveragePriceGoogleShopping(selectedItem.name)
+            if (typeof averagePrice === "number") finalPrice = averagePrice
+          } catch {
+            // A lista continua utilizável mesmo sem consulta externa.
+          }
         }
       }
-    }
 
-    if (!urlRaw && !priceRaw) {
-      try {
-        const averagePrice = await fetchAveragePriceGoogleShopping(
-          selectedItem.name
-        )
-        if (typeof averagePrice === "number") finalPrice = averagePrice
-      } catch {
-        // ignore fetch issues
+      let finalStoreName = storeNameRaw
+      if (!finalStoreName && urlInput) {
+        finalStoreName = new URL(finalUrl).hostname.replace(/^www\./i, "")
       }
-
-      const query = encodeURIComponent(selectedItem.name)
-      finalUrl = `https://www.google.com/search?tbm=shop&q=${query}`
       if (!finalStoreName) finalStoreName = "Google Shopping"
+
+      await createLink(selectedItem.id, finalStoreName, finalUrl, finalPrice)
+      await loadLinks(selectedItem.id)
+      closeModal()
+    } catch (error) {
+      setLinkError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setIsSavingLink(false)
     }
-
-    if (!finalUrl) return
-    if (!finalStoreName) return
-
-    await createLink(
-      selectedItem.id,
-      finalStoreName,
-      finalUrl,
-      finalPrice
-    )
-    loadLinks(selectedItem.id)
-    closeModal()
   }
 
   function truncateText(text: string, maxLength: number) {
@@ -422,111 +242,46 @@ export default function AppLayout() {
 
   async function removeLink(link: ItemLink) {
     if (!confirm(`Remover link da loja "${link.store_name}"?`)) return
-    if (supabase) {
-      const listId = getActiveListId(session)
-      const now = new Date().toISOString()
-      await supabase
-        .from("item_links")
-        .update({ deleted_at: now })
-        .eq("id", link.uuid)
-        .eq("list_id", listId)
-    }
     await deleteLink(link.id)
     if (selectedItem) loadLinks(selectedItem.id)
   }
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("lista-compras:theme")
-    if (storedTheme) {
-      document.documentElement.dataset.theme = storedTheme
-    }
-    if (typeof localStorage !== "undefined") {
-      const cacheRaw = localStorage.getItem("lista-compras:shopping-cache")
-      if (cacheRaw) {
-        try {
-          const cache = JSON.parse(cacheRaw) as {
-            categories?: Category[]
-            items?: Item[]
-            links?: ItemLink[]
-            selectedCategoryId?: number | null
-            selectedItemId?: number | null
-          }
-          if (cache.categories) setCategories(cache.categories)
-          if (cache.items) setItems(cache.items)
-          if (cache.links) setLinks(cache.links)
-          if (cache.selectedCategoryId) {
-            const cachedCategory = cache.categories?.find(
-              (category) => category.id === cache.selectedCategoryId
-            )
-            if (cachedCategory) setSelectedCategory(cachedCategory)
-            restoreCategoryId.current = cache.selectedCategoryId
-            restoreItemId.current = cache.selectedItemId ?? null
-          }
-        } catch {
-          // ignore cache issues
-        }
-      }
-    }
-    hasHydrated.current = true
-
-    const runSync = async () => {
-      await syncShoppingFromCloud()
-      loadCategories()
-    }
-    runSync()
+    if (storedTheme) document.documentElement.dataset.theme = storedTheme
+    void loadCategories().then(() => setDataError("")).catch((error) => {
+      setDataError(error instanceof Error ? error.message : String(error))
+    })
   }, [])
 
+  const selectedItemId = selectedItem?.id
   useEffect(() => {
-    if (!hasHydrated.current) return
-    const runSync = async () => {
-      await syncShoppingFromCloud()
-      loadCategories()
+    if (selectedItemId == null) return
+    let active = true
+    const updateHistory = () => {
+      void listItemLinkPriceHistory(selectedItemId)
+        .then((history) => { if (active) setPriceHistory(history) })
+        .catch(() => undefined)
     }
-    runSync()
-  }, [session?.user?.id])
-
-  useEffect(() => {
-    if (!hasHydrated.current || typeof localStorage === "undefined") return
-    localStorage.setItem(
-      "lista-compras:shopping-cache",
-      JSON.stringify({
-        categories,
-        items,
-        links,
-        selectedCategoryId: selectedCategory?.id ?? null,
-        selectedItemId: selectedItem?.id ?? null,
-      })
-    )
-    queueShoppingSync()
-  }, [categories, items, links, selectedCategory, selectedItem])
+    const timer = window.setInterval(updateHistory, 30_000)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [selectedItemId])
 
   /* ---------------- UI ---------------- */
 
   return (
     <div className="page">
-      <nav className="top-nav">
-        <div className="brand">
-          <span className="badge">Lista</span>
-        </div>
-        <div className="nav-links">
-          <Link to="/" className="btn btn-secondary">
-            Compras
-          </Link>
-          <Link to="/finance" className="btn btn-ghost">
-            Finanças
-          </Link>
-          <Link to="/games" className="btn btn-ghost">
-            Jogos
-          </Link>
-        </div>
-      </nav>
+      <AppNavigation />
+      {dataError && <p className="finance-notice" role="alert">{dataError}</p>}
 
       <div className="app-shell">
       {/* ---------- CATEGORIES ---------- */}
       <aside className="panel sidebar">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">Coleções</p>
             <h2>Categorias</h2>
           </div>
           <div className="actions">
@@ -538,9 +293,10 @@ export default function AppLayout() {
 
         <ul className="list">
           {categories.map((c) => (
-            <li key={c.id} className="list-item">
+              <li key={c.id} className={`list-item category-list-item ${selectedCategory?.id === c.id ? "is-selected" : ""}`}>
               <button
-                className="ghost"
+                className="ghost category-choice"
+                aria-pressed={selectedCategory?.id === c.id}
                 onClick={() => {
                   setSelectedCategory(c)
                   loadItems(c.id)
@@ -560,37 +316,35 @@ export default function AppLayout() {
       <main className="panel main">
         <header className="main-header">
           <div>
-            <p className="eyebrow">Lista de compras</p>
+            <span className="cartucho-session" aria-hidden="true">SESSION 02 // 買物 // LOG DE AQUISIÇÕES</span>
             <h1>
               Itens{" "}
-              {selectedCategory
-                ? `— ${selectedCategory.name}`
-                : "— selecione uma categoria"}
+              {selectedCategory ? `— ${selectedCategory.name}` : ""}
             </h1>
           </div>
           <div className="actions">
             <button
               className="btn btn-secondary"
               onClick={addItem}
-              disabled={!selectedCategory}
             >
-              + Item
+              + Novo item
             </button>
-            <button
+            {selectedCategory && <button
               className="btn btn-ghost"
               onClick={() => {
                 setSelectedCategory(null)
                 setSelectedItem(null)
                 setItems([])
                 setLinks([])
+                setPriceHistory([])
               }}
             >
               Limpar seleção
-            </button>
+            </button>}
           </div>
         </header>
 
-        <section className="content-grid">
+        <section className={`content-grid ${selectedItem ? "has-selected-item" : ""}`}>
           <div className="card">
             <div className="card-header">
               <h3>Itens</h3>
@@ -598,18 +352,20 @@ export default function AppLayout() {
             </div>
 
             <ul className="list">
-              {items.map((i) => (
+              {selectedCategory && items.map((i) => (
                 <li
                   key={i.id}
                   className={`list-item is-clickable ${
                     selectedItem?.id === i.id ? "active" : ""
                   }`}
-                  onClick={() => {
+                >
+                  <button className="item-select" onClick={() => {
                     setSelectedItem(i)
                     loadLinks(i.id)
-                  }}
-                >
-                  <span>{i.name}</span>
+                  }}>
+                    <span>{i.name}</span>
+                    <span className="item-open-hint" aria-hidden="true">Ver lojas →</span>
+                  </button>
                   <button
                     className="icon danger"
                     onClick={(e) => {
@@ -621,10 +377,14 @@ export default function AppLayout() {
                   </button>
                 </li>
               ))}
+              {!selectedCategory && <li className="empty-state shopping-empty-state">
+                <h4>{categories.length ? "Escolha uma categoria" : "Comece sua lista"}</h4>
+                <p>{categories.length ? "Selecione uma categoria para ver os itens ou adicione um novo item." : "Você pode criar uma categoria agora ou começar por um item; a categoria será criada no mesmo fluxo."}</p>
+              </li>}
             </ul>
           </div>
 
-          <div className="card">
+          {selectedItem && <div className="card">
             <div className="card-header">
               <h3>Links</h3>
               <span className="badge">{links.length}</span>
@@ -656,6 +416,7 @@ export default function AppLayout() {
                       <button className="icon danger" onClick={() => removeLink(l)}>
                         ✕
                       </button>
+                      <PriceHistoryChart points={priceHistory.filter((point) => point.item_link_id === l.id)} />
                     </li>
                   ))}
                 </ul>
@@ -666,17 +427,17 @@ export default function AppLayout() {
                 <p>Selecione um item ao lado para ver ou adicionar links.</p>
               </div>
             )}
-          </div>
+          </div>}
         </section>
       </main>
 
       {modalType && (
         <div className="modal-overlay" role="presentation">
-          <div className="modal" role="dialog" aria-modal="true">
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div className="modal-header">
               <div>
                 <p className="eyebrow">Cadastro rápido</p>
-                <h3>
+                <h3 id="modal-title">
                   {modalType === "category" && "Nova categoria"}
                   {modalType === "item" && "Novo item"}
                   {modalType === "link" && "Novo link"}
@@ -710,31 +471,58 @@ export default function AppLayout() {
             )}
 
             {modalType === "item" && (
-              <div className="modal-body">
+              <form className="modal-body" onSubmit={submitItem}>
                 <label className="field">
                   <span>Nome do item</span>
                   <input
                     className="input"
+                    required
                     placeholder="Ex: Café em grãos"
                     value={itemName}
                     onChange={(e) => setItemName(e.target.value)}
                   />
                 </label>
+                <label className="field">
+                  <span>Categoria</span>
+                  {categories.length > 0 && <select
+                    className="input"
+                    required
+                    value={itemCategoryChoice}
+                    onChange={(event) => setItemCategoryChoice(event.target.value)}
+                  >
+                    <option value="">Escolha uma categoria</option>
+                    {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                    <option value="__new__">+ Criar nova categoria</option>
+                  </select>}
+                  {itemCategoryChoice === "__new__" && <input
+                    className="input"
+                    required
+                    autoFocus
+                    placeholder="Nome da nova categoria"
+                    value={newItemCategoryName}
+                    onChange={(event) => setNewItemCategoryName(event.target.value)}
+                  />}
+                  {categories.length === 0 && <p className="muted">Crie uma categoria e adicione o item em um único passo.</p>}
+                </label>
                 <div className="modal-actions">
-                  <button className="btn btn-ghost" onClick={closeModal}>
+                  <button type="button" className="btn btn-ghost" onClick={closeModal}>
                     Cancelar
                   </button>
-                  <button className="btn btn-primary" onClick={submitItem}>
-                    Salvar
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!itemName.trim() || (itemCategoryChoice === "__new__" ? !newItemCategoryName.trim() : !itemCategoryChoice)}
+                  >
+                    Adicionar item
                   </button>
                 </div>
-              </div>
+              </form>
             )}
 
             {modalType === "link" && (
-              <div className="modal-body">
+              <form className="modal-body" onSubmit={submitLink}>
                 <label className="field">
-                  <span>Loja</span>
+                  <span>Loja (opcional se informar o endereço)</span>
                   <input
                     className="input"
                     placeholder="Ex: Mercado Central"
@@ -760,37 +548,56 @@ export default function AppLayout() {
                     onChange={(e) => setPriceValue(e.target.value)}
                   />
                 </label>
+                {linkError && <p className="form-error" role="alert">{linkError}</p>}
                 <div className="modal-actions">
-                  <button className="btn btn-ghost" onClick={closeModal}>
+                  <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={isSavingLink}>
                     Cancelar
                   </button>
-                  <button className="btn btn-primary" onClick={submitLink}>
-                    Salvar
+                  <button type="submit" className="btn btn-primary" disabled={isSavingLink}>
+                    {isSavingLink ? "Salvando…" : "Adicionar link"}
                   </button>
                 </div>
-              </div>
+              </form>
             )}
           </div>
         </div>
       )}
       </div>
 
-      <div className="bottom-nav">
-        <Link to="/" className="nav-link">
-          Compras
-        </Link>
-        <Link to="/games" className="nav-link">
-          Jogos
-        </Link>
-        <Link to="/finance" className="nav-link">
-          Finanças
-        </Link>
-        <Link to="/settings" className="nav-link">
-          Ajustes
-        </Link>
-      </div>
     </div>
   )
+}
+
+function PriceHistoryChart({ points }: { points: ItemLinkPricePoint[] }) {
+  if (points.length === 0) {
+    return <div className="price-history-empty">O gráfico começa quando um preço for registrado.</div>
+  }
+
+  const width = 320
+  const height = 100
+  const padding = 10
+  const values = points.map((point) => point.price)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const coordinates = points.map((point, index) => {
+    const x = points.length === 1 ? width / 2 : padding + index * (width - padding * 2) / (points.length - 1)
+    const y = height - padding - (point.price - min) / range * (height - padding * 2)
+    return { x, y }
+  })
+  const formatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
+  const latest = points[points.length - 1]
+
+  return <div className="price-history">
+    <div className="price-history-heading"><strong>Histórico de preço</strong><span>{points.length} registro(s)</span></div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Variação de preço entre ${formatter.format(min)} e ${formatter.format(max)}`}>
+      <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} />
+      <polyline points={coordinates.map(({ x, y }) => `${x},${y}`).join(" ")} />
+      {coordinates.map(({ x, y }, index) => <circle key={points[index].id} cx={x} cy={y} r="3" />)}
+    </svg>
+    <div className="price-history-foot"><span>{formatter.format(min)} – {formatter.format(max)}</span><span>Atualizado {new Date(latest.observed_at).toLocaleDateString("pt-BR")}</span></div>
+    <small>Verificação no máximo uma vez por dia enquanto o app estiver aberto.</small>
+  </div>
 }
 
 

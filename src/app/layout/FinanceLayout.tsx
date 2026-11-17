@@ -1,18 +1,28 @@
-import { FormEvent, useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { FormEvent, useEffect, useState } from "react"
+import AppNavigation from "./AppNavigation"
 import {
   createFinancialAccount, createFinancialCategory, createFinancialGoal,
   createFinancialInstallment, createFinancialTransaction, getFinancialDashboard,
   listFinancialAccounts, listFinancialCategories, listFinancialGoals,
   listFinancialInstallments, listFinancialTransactions, markFinancialInstallmentPaid,
-  seedFinancialExample,
+  createFinancialRecurrence, listFinancialRecurrences,
+  setFinancialRecurrenceActive, createFinancialDebt, listFinancialDebts, setFinancialTransactionStatus, updateFinancialDebtBalance,
+  listFinancialBudgets, upsertFinancialBudget,
+  listFinancialHistory,
+  deleteFinancialTransaction,
 } from "../../features/finance/api"
-import type { FinancialAccount, FinancialCategory, FinancialDashboard, FinancialGoal, FinancialInstallment, FinancialTransaction } from "../../types/Finance"
+import type { FinancialAccount, FinancialCategory, FinancialDashboard, FinancialGoal, FinancialInstallment, FinancialTransaction, FinancialRecurrence, FinancialDebt, FinancialBudget, FinancialHistoryPoint } from "../../types/Finance"
 
-const today = new Date().toISOString().slice(0, 10)
+const now = new Date()
+const today = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10)
 const currentMonth = today.slice(0, 7)
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
-const toCents = (value: string) => Math.round(Number(value.replace(",", ".")) * 100)
+const toCents = (value: string) => {
+  const normalized = value.includes(",") ? value.replace(/\./g, "").replace(",", ".") : value
+  const amount = Number(normalized)
+  if (!Number.isFinite(amount) || amount < 0) throw new Error("Informe um valor válido, como 120,50.")
+  return Math.round(amount * 100)
+}
 const formatMoney = (value: number) => money.format(value / 100)
 
 export default function FinanceLayout() {
@@ -23,80 +33,200 @@ export default function FinanceLayout() {
   const [transactions, setTransactions] = useState<FinancialTransaction[]>([])
   const [installments, setInstallments] = useState<FinancialInstallment[]>([])
   const [goals, setGoals] = useState<FinancialGoal[]>([])
+  const [recurrences, setRecurrences] = useState<FinancialRecurrence[]>([])
+  const [debts, setDebts] = useState<FinancialDebt[]>([])
+  const [budgets, setBudgets] = useState<FinancialBudget[]>([])
+  const [history, setHistory] = useState<FinancialHistoryPoint[]>([])
+  const [tab, setTab] = useState<"overview" | "planning" | "transactions">("overview")
   const [notice, setNotice] = useState("")
   const [accountName, setAccountName] = useState("")
   const [accountBalance, setAccountBalance] = useState("")
   const [categoryName, setCategoryName] = useState("")
+  const [categoryKind, setCategoryKind] = useState<"income" | "expense">("expense")
   const [transaction, setTransaction] = useState({ kind: "expense", amount: "", description: "", date: today, categoryId: "", accountId: "", status: "posted" })
   const [goal, setGoal] = useState({ name: "", target: "", saved: "", dueOn: "", minimum: "", ideal: "" })
   const [installment, setInstallment] = useState({ description: "", total: "", count: "2", dueOn: today, categoryId: "", accountId: "" })
-
-  const expenseCategories = useMemo(() => categories.filter((category) => category.kind === "expense"), [categories])
+  const [recurrence, setRecurrence] = useState({ kind: "expense", description: "", amount: "", day: "5", categoryId: "", accountId: "" })
+  const [debt, setDebt] = useState({ name: "", balance: "", payment: "", day: "" })
+  const [debtBalances, setDebtBalances] = useState<Record<number, string>>({})
+  const [budgetForm, setBudgetForm] = useState({ categoryId: "", limit: "" })
 
   async function load() {
     try {
-      const [data, accountRows, categoryRows, transactionRows, installmentRows, goalRows] = await Promise.all([
+      const [data, accountRows, categoryRows, transactionRows, installmentRows, goalRows, recurrenceRows, debtRows, budgetRows] = await Promise.all([
         getFinancialDashboard(month), listFinancialAccounts(), listFinancialCategories(),
-        listFinancialTransactions(month), listFinancialInstallments(month), listFinancialGoals(),
+        listFinancialTransactions(month), listFinancialInstallments(month), listFinancialGoals(), listFinancialRecurrences(), listFinancialDebts(), listFinancialBudgets(month),
       ])
       setDashboard(data); setAccounts(accountRows); setCategories(categoryRows)
-      setTransactions(transactionRows); setInstallments(installmentRows); setGoals(goalRows)
+      setTransactions(transactionRows); setInstallments(installmentRows); setGoals(goalRows); setRecurrences(recurrenceRows); setDebts(debtRows); setBudgets(budgetRows)
     } catch (error) { setNotice(String(error)) }
   }
   useEffect(() => { load() }, [month])
+  useEffect(() => {
+    listFinancialHistory(month).then(setHistory).catch(() => setHistory([]))
+  }, [month])
 
   async function submitAccount(event: FormEvent) {
     event.preventDefault()
-    await createFinancialAccount(accountName, "checking", toCents(accountBalance || "0"))
-    setAccountName(""); setAccountBalance(""); setNotice("Conta adicionada."); load()
+    try {
+      await createFinancialAccount(accountName, "checking", toCents(accountBalance || "0"))
+      setAccountName(""); setAccountBalance(""); setNotice("Conta adicionada."); await load()
+    } catch (error) { setNotice(String(error)) }
   }
   async function submitCategory(event: FormEvent) {
     event.preventDefault()
-    await createFinancialCategory(categoryName, "expense", false)
-    setCategoryName(""); setNotice("Categoria adicionada."); load()
+    try {
+      await createFinancialCategory(categoryName, categoryKind, false)
+      setCategoryName(""); setNotice("Categoria criada."); await load()
+    } catch (error) { setNotice(String(error)) }
+  }
+  async function createCategoryFromPicker(name: string, kind: "income" | "expense") {
+    try {
+      const created = await createFinancialCategory(name, kind, false)
+      setCategories((current) => [...current.filter((item) => item.id !== created.id), created]
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")))
+      setNotice("Categoria criada e selecionada.")
+      return created.id
+    } catch (error) {
+      setNotice(String(error))
+      return null
+    }
   }
   async function submitTransaction(event: FormEvent) {
     event.preventDefault()
-    await createFinancialTransaction(transaction.kind, toCents(transaction.amount), transaction.date, transaction.description, transaction.categoryId ? Number(transaction.categoryId) : null, transaction.accountId ? Number(transaction.accountId) : null, transaction.status)
-    setTransaction({ kind: "expense", amount: "", description: "", date: today, categoryId: "", accountId: "", status: "posted" })
-    setNotice("Lançamento registrado."); load()
+    try {
+      await createFinancialTransaction(transaction.kind, toCents(transaction.amount), transaction.date, transaction.description, transaction.categoryId ? Number(transaction.categoryId) : null, transaction.accountId ? Number(transaction.accountId) : null, transaction.status)
+      setTransaction({ kind: "expense", amount: "", description: "", date: today, categoryId: "", accountId: "", status: "posted" })
+      setNotice("Lançamento registrado."); await load()
+    } catch (error) { setNotice(String(error)) }
   }
   async function submitGoal(event: FormEvent) {
     event.preventDefault()
-    await createFinancialGoal(goal.name, toCents(goal.target), toCents(goal.saved || "0"), goal.dueOn || null, 3, toCents(goal.minimum || "0"), toCents(goal.ideal || "0"))
-    setGoal({ name: "", target: "", saved: "", dueOn: "", minimum: "", ideal: "" }); setNotice("Meta criada."); load()
+    try {
+      await createFinancialGoal(goal.name, toCents(goal.target), toCents(goal.saved || "0"), goal.dueOn || null, 3, toCents(goal.minimum || "0"), toCents(goal.ideal || "0"))
+      setGoal({ name: "", target: "", saved: "", dueOn: "", minimum: "", ideal: "" }); setNotice("Meta criada."); await load()
+    } catch (error) { setNotice(String(error)) }
   }
   async function submitInstallment(event: FormEvent) {
     event.preventDefault()
-    await createFinancialInstallment(installment.description, toCents(installment.total), Number(installment.count), installment.dueOn, installment.categoryId ? Number(installment.categoryId) : null, installment.accountId ? Number(installment.accountId) : null)
-    setInstallment({ description: "", total: "", count: "2", dueOn: today, categoryId: "", accountId: "" }); setNotice("Parcelas planejadas."); load()
+    try {
+      await createFinancialInstallment(installment.description, toCents(installment.total), Number(installment.count), installment.dueOn, installment.categoryId ? Number(installment.categoryId) : null, installment.accountId ? Number(installment.accountId) : null)
+      setInstallment({ description: "", total: "", count: "2", dueOn: today, categoryId: "", accountId: "" }); setNotice("Parcelas planejadas."); await load()
+    } catch (error) { setNotice(String(error)) }
   }
-  async function payInstallment(id: number) { await markFinancialInstallmentPaid(id); setNotice("Parcela marcada como paga. Registre o gasto realizado para refletir no saldo."); load() }
-  async function addExample() { try { await seedFinancialExample(); setNotice("Exemplos inseridos. Você pode começar a substituí-los pelos seus dados."); load() } catch (error) { setNotice(String(error)) } }
+  async function submitRecurrence(event: FormEvent) {
+    event.preventDefault()
+    try {
+      await createFinancialRecurrence(recurrence.kind, recurrence.description, toCents(recurrence.amount), Number(recurrence.day), month, recurrence.categoryId ? Number(recurrence.categoryId) : null, recurrence.accountId ? Number(recurrence.accountId) : null)
+      setRecurrence({ ...recurrence, description: "", amount: "" }); setNotice("Recorrência criada e incluída no planejamento mensal."); await load()
+    } catch (error) { setNotice(String(error)) }
+  }
+  async function submitDebt(event: FormEvent) {
+    event.preventDefault()
+    try {
+      await createFinancialDebt(debt.name, toCents(debt.balance), toCents(debt.payment || "0"), debt.day ? Number(debt.day) : null, month)
+      setDebt({ name: "", balance: "", payment: "", day: "" }); setNotice("Dívida adicionada ao panorama."); await load()
+    } catch (error) { setNotice(String(error)) }
+  }
+  async function submitBudget(event: FormEvent) {
+    event.preventDefault()
+    try {
+      await upsertFinancialBudget(Number(budgetForm.categoryId), month, toCents(budgetForm.limit))
+      setBudgetForm({ categoryId: "", limit: "" }); setNotice("Orçamento salvo para este mês."); await load()
+    } catch (error) { setNotice(String(error)) }
+  }
+  async function payInstallment(id: number) { try { await markFinancialInstallmentPaid(id); setNotice("Pagamento confirmado e gasto lançado no saldo."); await load() } catch (error) { setNotice(String(error)) } }
+  async function removeTransaction(item: FinancialTransaction) {
+    if (item.recurrence_id != null || item.installment_id != null) {
+      setNotice("Este lançamento pertence a uma recorrência ou parcela e deve ser gerenciado pelo planejamento.")
+      return
+    }
+    if (!window.confirm(`Remover o lançamento “${item.description}”?`)) return
+    try {
+      await deleteFinancialTransaction(item.id)
+      setNotice("Lançamento removido.")
+      await load()
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : String(error))
+    }
+  }
 
   return <div className="page finance-page">
-    <nav className="top-nav"><div className="brand"><span className="badge">Finanças</span></div><div className="nav-links"><Link to="/" className="btn btn-ghost">Compras</Link><Link to="/finance" className="btn btn-secondary">Finanças</Link></div></nav>
+    <AppNavigation />
     <main className="finance-shell">
-      <header className="finance-header"><div><p className="eyebrow">Visão mensal</p><h1>Clareza para decidir hoje.</h1><p className="muted">Valores reais, compromissos e estimativas ficam separados.</p></div><div className="finance-header-actions"><button className="btn btn-ghost" onClick={addExample}>Usar exemplos</button><label className="field finance-month"><span>Mês analisado</span><input className="input" type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></label></div></header>
-      {notice && <p className="finance-notice">{notice}</p>}
+      <header className="finance-header"><div><span className="cartucho-session" aria-hidden="true">SESSION 04 // 財務 // FINANÇAS</span><p className="eyebrow">Finanças</p><h1>Seu dinheiro</h1><p className="muted">Saldo, contas previstas e movimentações.</p></div><div className="finance-header-actions"><button className="btn btn-primary" onClick={() => setTab("transactions")}>Novo lançamento</button><label className="field finance-month"><span>Mês analisado</span><input className="input" type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></label></div></header>
+      {notice && <p className="finance-notice" role="status" aria-live="polite">{notice}</p>}
+      {accounts.length === 0 && transactions.length === 0 && recurrences.length === 0 && <section className="card finance-onboarding"><div><p className="eyebrow">Primeiro passo</p><h2>Comece pelo saldo que você tem hoje</h2><p className="muted">Cadastre uma conta com o saldo atual. Depois, registre entradas e gastos ou planeje seus valores fixos.</p></div><div className="finance-onboarding-actions"><button className="btn btn-primary" onClick={() => setTab("planning")}>Cadastrar saldo inicial</button></div></section>}
+      <nav className="finance-tabs" aria-label="Seções financeiras">{([ ["overview", "Resumo"], ["planning", "Planejamento"], ["transactions", "Lançamentos"] ] as const).map(([id, label]) => <button key={id} className={tab === id ? "is-active" : ""} aria-current={tab === id ? "page" : undefined} onClick={() => setTab(id)}>{label}</button>)}</nav>
+      {tab === "overview" && <>
       <section className="finance-kpis">
-        <Metric label="Saldo real" value={dashboard?.current_balance_cents ?? 0} hint="Dinheiro confirmado nas contas" />
-        <Metric label="Seguro para gastar" value={dashboard?.available_to_spend_cents ?? 0} hint="Após compromissos e mínimos de metas" emphasis />
-        <Metric label="Comprometido" value={dashboard?.committed_cents ?? 0} hint={`${dashboard?.pending_bills_count ?? 0} parcela(s) pendente(s)`} />
+        <Metric label="Seguro para gastar" value={dashboard?.available_to_spend_cents ?? 0} hint="Depois das contas previstas e reservas" emphasis />
+        <Metric label="Saldo real" value={dashboard?.current_balance_cents ?? 0} hint="Saldo inicial + movimentações realizadas" />
+        <Metric label="Reservado neste mês" value={dashboard?.committed_cents ?? 0} hint="Gastos previstos, parcelas e limites ainda livres" />
         <Metric label="Projeção do mês" value={dashboard?.projected_end_cents ?? 0} hint="Estimativa, não garantia" />
       </section>
-      <section className="finance-grid">
-        <article className="card finance-card"><div className="card-header"><h2>Resumo de {month}</h2><span className="badge">Estimativa</span></div><dl className="finance-summary"><div><dt>Entradas realizadas</dt><dd>{formatMoney(dashboard?.income_cents ?? 0)}</dd></div><div><dt>Gastos realizados</dt><dd>{formatMoney(dashboard?.spent_cents ?? 0)}</dd></div><div><dt>Investimentos realizados</dt><dd>{formatMoney(dashboard?.investments_cents ?? 0)}</dd></div><div><dt>Mínimos para metas</dt><dd>{formatMoney(dashboard?.goal_minimum_cents ?? 0)}</dd></div></dl><p className="muted">O saldo seguro considera apenas compromissos registrados. Planeje imprevistos antes de assumir novas compras.</p></article>
-        <article className="card finance-card"><div className="card-header"><h2>+ Adicionar</h2><span className="badge">rápido</span></div><form className="form-stack" onSubmit={submitTransaction}><select className="input" value={transaction.kind} onChange={(e) => setTransaction({...transaction, kind:e.target.value})}><option value="expense">Gasto</option><option value="income">Receita</option><option value="investment">Investimento</option></select><input className="input" required placeholder="Descrição" value={transaction.description} onChange={(e) => setTransaction({...transaction, description:e.target.value})}/><input className="input" required inputMode="decimal" placeholder="Valor (ex.: 120,50)" value={transaction.amount} onChange={(e) => setTransaction({...transaction, amount:e.target.value})}/><div className="form-row"><input className="input" type="date" value={transaction.date} onChange={(e) => setTransaction({...transaction, date:e.target.value})}/><select className="input" value={transaction.status} onChange={(e) => setTransaction({...transaction, status:e.target.value})}><option value="posted">Realizado</option><option value="planned">Planejado</option></select></div><select className="input" value={transaction.accountId} onChange={(e) => setTransaction({...transaction, accountId:e.target.value})}><option value="">Sem conta vinculada</option>{accounts.map((a)=><option key={a.id} value={a.id}>{a.name}</option>)}</select><select className="input" value={transaction.categoryId} onChange={(e) => setTransaction({...transaction, categoryId:e.target.value})}><option value="">Sem categoria</option>{categories.filter((c)=>transaction.kind === "income" ? c.kind === "income" : c.kind === "expense").map((c)=><option key={c.id} value={c.id}>{c.name}</option>)}</select><button className="btn btn-primary">Registrar lançamento</button></form></article>
+      <section className="finance-grid finance-overview-grid">
+        <article className="card finance-card"><div className="card-header"><h2>Resumo de {month}</h2><span className="badge">Realizado</span></div><dl className="finance-summary"><div><dt>Entradas</dt><dd>{formatMoney(dashboard?.income_cents ?? 0)}</dd></div><div><dt>Gastos</dt><dd>{formatMoney(dashboard?.spent_cents ?? 0)}</dd></div><div><dt>Investimentos</dt><dd>{formatMoney(dashboard?.investments_cents ?? 0)}</dd></div><div><dt>Reserva mínima</dt><dd>{formatMoney(dashboard?.goal_minimum_cents ?? 0)}</dd></div></dl></article>
+        <article className="card finance-card"><h2>Realizado · últimos 6 meses</h2><FinanceChart rows={history}/></article>
       </section>
+      <section className="finance-grid finance-overview-grid"><article className="card finance-card"><h2>Compromissos do mês</h2><p className="muted">{installments.filter((item) => item.state === "pending").length} parcelas pendentes · {recurrences.filter((item) => item.active).length} recorrências ativas</p><button className="btn btn-secondary" onClick={() => setTab("planning")}>Abrir planejamento</button></article><article className="card finance-card"><h2>Dívidas cadastradas</h2>{debts.length ? <ul className="finance-list">{debts.slice(0, 3).map((item) => <li key={item.id}><span>{item.name}</span><strong>{formatMoney(item.balance_cents)}</strong></li>)}</ul> : <p className="muted">Cadastre dívidas para acompanhar saldo e pagamento mensal.</p>}</article></section>
+      </>}
+      {tab === "planning" && <>
       <section className="finance-grid finance-grid-lower">
-        <article className="card finance-card"><h2>Contas e categorias</h2><form className="inline-form" onSubmit={submitAccount}><input className="input" required placeholder="Conta (ex.: Banco)" value={accountName} onChange={(e)=>setAccountName(e.target.value)}/><input className="input" inputMode="decimal" placeholder="Saldo inicial" value={accountBalance} onChange={(e)=>setAccountBalance(e.target.value)}/><button className="btn btn-secondary">Conta</button></form><ul className="finance-list">{accounts.length ? accounts.map((a)=><li key={a.id}><span>{a.name}</span><strong>{formatMoney(a.opening_balance_cents)}</strong></li>) : <li className="muted">Adicione uma conta para começar pelo seu saldo real.</li>}</ul><form className="inline-form" onSubmit={submitCategory}><input className="input" required placeholder="Nova categoria de gasto" value={categoryName} onChange={(e)=>setCategoryName(e.target.value)}/><button className="btn btn-ghost">Categoria</button></form></article>
-        <article className="card finance-card"><h2>Parcelas do mês</h2><ul className="finance-list">{installments.length ? installments.map((i)=><li key={i.id}><span><strong>{i.description}</strong><small>{i.due_on}</small></span><span>{formatMoney(i.amount_cents)} {i.state === "pending" && <button className="icon" title="Marcar como paga" onClick={()=>payInstallment(i.id)}>✓</button>}</span></li>) : <li className="muted">Nenhuma parcela para este mês.</li>}</ul><details><summary>Planejar compra parcelada</summary><form className="form-stack finance-details" onSubmit={submitInstallment}><input className="input" required placeholder="Compra" value={installment.description} onChange={(e)=>setInstallment({...installment,description:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Total" value={installment.total} onChange={(e)=>setInstallment({...installment,total:e.target.value})}/><input className="input" required type="number" min="2" placeholder="Parcelas" value={installment.count} onChange={(e)=>setInstallment({...installment,count:e.target.value})}/></div><input className="input" type="date" value={installment.dueOn} onChange={(e)=>setInstallment({...installment,dueOn:e.target.value})}/><select className="input" value={installment.categoryId} onChange={(e)=>setInstallment({...installment,categoryId:e.target.value})}><option value="">Categoria opcional</option>{expenseCategories.map((c)=><option key={c.id} value={c.id}>{c.name}</option>)}</select><button className="btn btn-ghost">Criar parcelas</button></form></details></article>
-        <article className="card finance-card"><h2>Metas</h2><ul className="finance-list">{goals.length ? goals.map((g)=><li key={g.id} className="goal-row"><span><strong>{g.name}</strong><small>{formatMoney(g.saved_cents)} de {formatMoney(g.target_cents)}</small><i><b style={{width:`${Math.min(100,(g.saved_cents/g.target_cents)*100)}%`}} /></i></span><strong>{Math.round((g.saved_cents/g.target_cents)*100)}%</strong></li>) : <li className="muted">Crie uma meta para reservar dinheiro com intenção.</li>}</ul><details><summary>Nova meta</summary><form className="form-stack finance-details" onSubmit={submitGoal}><input className="input" required placeholder="Nome da meta" value={goal.name} onChange={(e)=>setGoal({...goal,name:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Valor alvo" value={goal.target} onChange={(e)=>setGoal({...goal,target:e.target.value})}/><input className="input" inputMode="decimal" placeholder="Já guardado" value={goal.saved} onChange={(e)=>setGoal({...goal,saved:e.target.value})}/></div><input className="input" type="date" value={goal.dueOn} onChange={(e)=>setGoal({...goal,dueOn:e.target.value})}/><div className="form-row"><input className="input" inputMode="decimal" placeholder="Mínimo mensal" value={goal.minimum} onChange={(e)=>setGoal({...goal,minimum:e.target.value})}/><input className="input" inputMode="decimal" placeholder="Ideal mensal" value={goal.ideal} onChange={(e)=>setGoal({...goal,ideal:e.target.value})}/></div><button className="btn btn-ghost">Criar meta</button></form></details></article>
+        <article className="card finance-card"><div className="card-header"><h2>Renda e gastos fixos</h2><span className="badge">mensal</span></div><p className="muted">Cada recorrência cria uma previsão para o mês selecionado. Marque como realizado em Lançamentos quando acontecer.</p><form className="form-stack finance-details" onSubmit={submitRecurrence}><label className="field"><span>Tipo recorrente</span><select className="input" value={recurrence.kind} onChange={(e)=>setRecurrence({...recurrence,kind:e.target.value,categoryId:""})}><option value="income">Salário / renda</option><option value="expense">Gasto fixo</option></select></label><input className="input" required placeholder="Descrição (ex.: salário, aluguel)" value={recurrence.description} onChange={(e)=>setRecurrence({...recurrence,description:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Valor mensal" value={recurrence.amount} onChange={(e)=>setRecurrence({...recurrence,amount:e.target.value})}/><label className="field"><span>Dia do mês</span><input className="input" type="number" min="1" max="31" value={recurrence.day} onChange={(e)=>setRecurrence({...recurrence,day:e.target.value})}/></label></div><CategoryPicker label="Categoria da recorrência (opcional)" kind={recurrence.kind as "income" | "expense"} value={recurrence.categoryId} onChange={(categoryId) => setRecurrence({...recurrence, categoryId})} categories={categories} onCreate={createCategoryFromPicker} /><button className="btn btn-primary">Adicionar recorrência</button></form><ul className="finance-list">{recurrences.map((item)=><li key={item.id}><span><strong>{item.description}</strong><small>{item.kind === "income" ? "Renda" : "Gasto fixo"} · dia {item.day_of_month} · {formatMoney(item.amount_cents)}</small></span><button className="btn btn-ghost" onClick={async()=>{await setFinancialRecurrenceActive(item.id,!item.active); await load()}}>{item.active ? "Pausar" : "Ativar"}</button></li>)}</ul></article>
+        <article className="card finance-card"><h2>Dívidas</h2><p className="muted">Saldo cadastrado e pagamento esperado. Informar pagamento mensal cria um gasto fixo no planejamento; atualize o saldo devedor manualmente após pagar.</p><form className="form-stack finance-details" onSubmit={submitDebt}><input className="input" required placeholder="Nome da dívida" value={debt.name} onChange={(e)=>setDebt({...debt,name:e.target.value})}/><input className="input" required inputMode="decimal" placeholder="Saldo devedor" value={debt.balance} onChange={(e)=>setDebt({...debt,balance:e.target.value})}/><div className="form-row"><input className="input" inputMode="decimal" placeholder="Pagamento mensal (opcional)" value={debt.payment} onChange={(e)=>setDebt({...debt,payment:e.target.value})}/><input className="input" type="number" min="1" max="31" placeholder="Dia vencimento" required={Boolean(debt.payment)} value={debt.day} onChange={(e)=>setDebt({...debt,day:e.target.value})}/></div><button className="btn btn-secondary">Adicionar dívida</button></form><ul className="finance-list">{debts.map((item)=><li className="debt-row" key={item.id}><span><strong>{item.name}</strong><small>{item.due_day ? `Vence dia ${item.due_day} · ` : ""}Pagamento {formatMoney(item.monthly_payment_cents)}/mês</small></span><span className="debt-balance"><strong>{formatMoney(item.balance_cents)}</strong><input className="input" aria-label={`Novo saldo de ${item.name}`} inputMode="decimal" placeholder="Novo saldo" value={debtBalances[item.id] ?? ""} onChange={(e)=>setDebtBalances({...debtBalances,[item.id]:e.target.value})}/><button className="btn btn-ghost" disabled={!debtBalances[item.id]} onClick={async()=>{await updateFinancialDebtBalance(item.id,toCents(debtBalances[item.id] ?? "0")); setDebtBalances({...debtBalances,[item.id]:""}); setNotice("Saldo da dívida atualizado."); await load()}}>Atualizar saldo</button></span></li>)}</ul></article>
       </section>
-      <section className="card finance-card"><div className="card-header"><h2>Lançamentos de {month}</h2><span className="badge">{transactions.length}</span></div><ul className="finance-list">{transactions.length ? transactions.map((t)=><li key={t.id}><span><strong>{t.description}</strong><small>{t.occurred_on} · {t.status === "planned" ? "planejado" : "realizado"}</small></span><strong className={t.kind === "income" ? "income" : "expense"}>{t.kind === "income" ? "+" : "−"}{formatMoney(t.amount_cents)}</strong></li>) : <li className="muted">Registre uma receita, gasto ou investimento para formar seu histórico.</li>}</ul></section>
+      <details className="finance-supporting"><summary>Contas, categorias, parcelas, metas e limites</summary>
+      <section className="finance-grid finance-grid-lower">
+        <article className="card finance-card"><h2>Contas</h2><details className="finance-add-account"><summary>{accounts.length ? "Adicionar conta" : "Cadastrar saldo inicial"}</summary><form className="inline-form" onSubmit={submitAccount}><input className="input" required placeholder="Conta (ex.: Banco)" value={accountName} onChange={(e)=>setAccountName(e.target.value)}/><input className="input" required inputMode="decimal" placeholder="Saldo no início do controle (ex.: 1.500,00)" value={accountBalance} onChange={(e)=>setAccountBalance(e.target.value)}/><button className="btn btn-secondary">Salvar conta</button></form></details><ul className="finance-list">{accounts.length ? accounts.map((a)=><li key={a.id}><span>{a.name}<small>Saldo inicial</small></span><strong>{formatMoney(a.opening_balance_cents)}</strong></li>) : <li className="muted">Adicione uma conta para começar pelo seu saldo real.</li>}</ul><div className="category-management"><p className="muted">Categoria serve para agrupar lançamentos parecidos (por exemplo, Moradia ou Salário). É opcional e não representa uma conta.</p><form className="form-stack" onSubmit={submitCategory}><label className="field"><span>Tipo da categoria</span><select className="input" value={categoryKind} onChange={(event)=>setCategoryKind(event.target.value as "income" | "expense")}><option value="expense">Gastos</option><option value="income">Rendas</option></select></label><div className="inline-form"><input className="input" required placeholder="Nome da categoria" value={categoryName} onChange={(event)=>setCategoryName(event.target.value)}/><button className="btn btn-secondary">Criar categoria</button></div></form><ul className="finance-list">{categories.map((category)=><li key={category.id}><span>{category.name}</span><small>{category.kind === "income" ? "Renda" : "Gasto"}</small></li>)}</ul></div></article>
+        <article className="card finance-card"><h2>Parcelas e pagamentos</h2><p className="muted">Ao confirmar, o app lança o gasto no saldo e tira a parcela dos pendentes de uma vez.</p><ul className="finance-list">{installments.length ? installments.map((i)=><li key={i.id}><span><strong>{i.description}</strong><small>{i.due_on}</small></span><span>{formatMoney(i.amount_cents)} {i.state === "pending" && <button className="btn btn-ghost" onClick={()=>payInstallment(i.id)}>Confirmar pagamento</button>}</span></li>) : <li className="muted">Nenhuma parcela para este mês.</li>}</ul><details><summary>Planejar compra parcelada</summary><form className="form-stack finance-details" onSubmit={submitInstallment}><input className="input" required placeholder="Compra" value={installment.description} onChange={(e)=>setInstallment({...installment,description:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Total" value={installment.total} onChange={(e)=>setInstallment({...installment,total:e.target.value})}/><input className="input" required type="number" min="2" placeholder="Parcelas" value={installment.count} onChange={(e)=>setInstallment({...installment,count:e.target.value})}/></div><input className="input" type="date" value={installment.dueOn} onChange={(e)=>setInstallment({...installment,dueOn:e.target.value})}/><CategoryPicker label="Categoria da parcela (opcional)" kind="expense" value={installment.categoryId} onChange={(categoryId) => setInstallment({...installment, categoryId})} categories={categories} onCreate={createCategoryFromPicker} /><button className="btn btn-ghost">Criar parcelas</button></form></details></article>
+        <article className="card finance-card"><h2>Metas de reserva</h2><ul className="finance-list">{goals.length ? goals.map((g)=><li key={g.id} className="goal-row"><span><strong>{g.name}</strong><small>{formatMoney(g.saved_cents)} de {formatMoney(g.target_cents)}</small><i><b style={{width:`${Math.min(100,(g.saved_cents/g.target_cents)*100)}%`}} /></i></span><strong>{Math.round((g.saved_cents/g.target_cents)*100)}%</strong></li>) : <li className="muted">Crie uma meta para reservar dinheiro com intenção.</li>}</ul><details><summary>Nova meta</summary><form className="form-stack finance-details" onSubmit={submitGoal}><input className="input" required placeholder="Nome da meta" value={goal.name} onChange={(e)=>setGoal({...goal,name:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Valor alvo" value={goal.target} onChange={(e)=>setGoal({...goal,target:e.target.value})}/><input className="input" inputMode="decimal" placeholder="Já guardado" value={goal.saved} onChange={(e)=>setGoal({...goal,saved:e.target.value})}/></div><input className="input" type="date" value={goal.dueOn} onChange={(e)=>setGoal({...goal,dueOn:e.target.value})}/><div className="form-row"><input className="input" inputMode="decimal" placeholder="Mínimo mensal" value={goal.minimum} onChange={(e)=>setGoal({...goal,minimum:e.target.value})}/><input className="input" inputMode="decimal" placeholder="Ideal mensal" value={goal.ideal} onChange={(e)=>setGoal({...goal,ideal:e.target.value})}/></div><button className="btn btn-ghost">Criar meta</button></form></details></article>
+        <article className="card finance-card"><h2>Limites de gastos</h2><p className="muted">Defina quanto pretende gastar em cada categoria neste mês. Limites ajudam a reservar o que ainda não foi gasto.</p><form className="form-stack finance-details" onSubmit={submitBudget}><CategoryPicker label="Categoria para limitar" kind="expense" value={budgetForm.categoryId} onChange={(categoryId) => setBudgetForm({...budgetForm,categoryId})} categories={categories} onCreate={createCategoryFromPicker} optional={false} /><input className="input" required inputMode="decimal" placeholder={`Limite de ${month}`} value={budgetForm.limit} onChange={(e)=>setBudgetForm({...budgetForm,limit:e.target.value})}/><button className="btn btn-secondary">Salvar limite</button></form><ul className="finance-list">{budgets.map((budget)=>{const category=categories.find((item)=>item.id===budget.category_id);const remaining=Math.max(0,budget.limit_cents-budget.spent_cents-budget.committed_cents);return <li key={budget.id}><span><strong>{category?.name ?? "Categoria"}</strong><small>Realizado {formatMoney(budget.spent_cents)} · previsto {formatMoney(budget.committed_cents)} · limite {formatMoney(budget.limit_cents)}</small><i><b style={{width:`${Math.min(100,budget.limit_cents ? (budget.spent_cents+budget.committed_cents)/budget.limit_cents*100 : 0)}%`}}/></i></span><strong>{formatMoney(remaining)}</strong></li>})}{!budgets.length && <li className="muted">Defina limites para acompanhar o que resta neste mês.</li>}</ul></article>
+      </section></details></>}
+      {tab === "transactions" && <>
+      <article className="card finance-card finance-quick-card"><div className="card-header"><h2>Novo lançamento</h2></div><form className="form-stack" onSubmit={submitTransaction}><label className="field"><span>Tipo</span><select className="input" value={transaction.kind} onChange={(e) => setTransaction({...transaction, kind:e.target.value, categoryId:""})}><option value="expense">Gasto</option><option value="income">Receita / salário</option><option value="investment">Investimento</option></select></label><label className="field"><span>Descrição</span><input className="input" required placeholder="Ex.: salário, aluguel, mercado" value={transaction.description} onChange={(e) => setTransaction({...transaction, description:e.target.value})}/></label><label className="field"><span>Valor</span><input className="input" required inputMode="decimal" placeholder="Ex.: 120,50" value={transaction.amount} onChange={(e) => setTransaction({...transaction, amount:e.target.value})}/></label><div className="form-row"><label className="field"><span>Data</span><input className="input" type="date" value={transaction.date} onChange={(e) => setTransaction({...transaction, date:e.target.value})}/></label><label className="field"><span>Status</span><select className="input" value={transaction.status} onChange={(e) => setTransaction({...transaction, status:e.target.value})}><option value="posted">Realizado</option><option value="planned">Planejado</option></select></label></div><label className="field"><span>Conta</span><select className="input" value={transaction.accountId} onChange={(e) => setTransaction({...transaction, accountId:e.target.value})}><option value="">Sem conta vinculada</option>{accounts.map((a)=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label><CategoryPicker label="Categoria do lançamento" kind={transaction.kind === "income" ? "income" : "expense"} value={transaction.categoryId} onChange={(categoryId) => setTransaction({...transaction, categoryId})} categories={categories} onCreate={createCategoryFromPicker} /><button className="btn btn-primary">Registrar lançamento</button></form></article>
+      <section className="card finance-card"><div className="card-header"><h2>Lançamentos de {month}</h2><span className="badge">{transactions.length}</span></div><ul className="finance-list finance-transactions-list">{transactions.length ? transactions.map((t)=><li key={t.id}><span><strong>{t.description}</strong><small>{t.occurred_on} · {t.status === "planned" ? "previsto" : "realizado"} · {categories.find((category) => category.id === t.category_id)?.name ?? "sem categoria"} · {accounts.find((account) => account.id === t.account_id)?.name ?? "sem conta"}</small></span><span><strong className={t.kind === "income" ? "income" : "expense"}>{t.kind === "income" ? "+" : "−"}{formatMoney(t.amount_cents)}</strong>{t.status === "planned" && <button type="button" className="btn btn-ghost" onClick={async()=>{try { await setFinancialTransactionStatus(t.id,"posted"); await load(); setNotice("Lançamento confirmado como realizado.") } catch (error) { setNotice(String(error)) }}}>Marcar realizado</button>}{t.recurrence_id == null && t.installment_id == null && <button type="button" className="btn btn-ghost finance-delete" onClick={()=>removeTransaction(t)}>Remover</button>}</span></li>) : <li className="muted">Registre uma receita, gasto ou investimento para formar seu histórico.</li>}</ul></section>
+      </>}
     </main>
   </div>
 }
 
 function Metric({ label, value, hint, emphasis = false }: { label: string; value: number; hint: string; emphasis?: boolean }) { return <article className={`finance-metric ${emphasis ? "is-emphasis" : ""}`}><span>{label}</span><strong>{formatMoney(value)}</strong><small>{hint}</small></article> }
+
+function FinanceChart({ rows }: { rows: FinancialHistoryPoint[] }) {
+  const max = Math.max(1, ...rows.flatMap((row) => [row.income_cents, row.spent_cents]))
+  return <div className="finance-chart" role="img" aria-label="Gráfico de entradas e gastos realizados nos últimos seis meses">
+    <div className="finance-chart-legend"><span><i className="chart-income"/>Entradas</span><span><i className="chart-expense"/>Gastos</span></div>
+    <div className="finance-chart-bars">{rows.map((row) => <div className="finance-chart-month" key={row.month} title={`${row.month}: entradas ${formatMoney(row.income_cents)}, gastos ${formatMoney(row.spent_cents)}`}><div className="finance-chart-pair"><i className="chart-income" style={{ height: `${Math.max(2, row.income_cents / max * 100)}%` }}/><i className="chart-expense" style={{ height: `${Math.max(2, row.spent_cents / max * 100)}%` }}/></div><small>{row.month.slice(5)}</small></div>)}</div>
+  </div>
+}
+
+function CategoryPicker({ label, kind, value, onChange, onCreate, categories, optional = true }: {
+  label: string
+  kind: "income" | "expense"
+  value: string
+  onChange: (value: string) => void
+  onCreate: (name: string, kind: "income" | "expense") => Promise<number | null>
+  categories: FinancialCategory[]
+  optional?: boolean
+}) {
+  const [creating, setCreating] = useState(false)
+  const [name, setName] = useState("")
+  const [saving, setSaving] = useState(false)
+  async function submit() {
+    if (!name.trim() || saving) return
+    setSaving(true)
+    try {
+      const id = await onCreate(name.trim(), kind)
+      if (id !== null) { onChange(String(id)); setName(""); setCreating(false) }
+    } finally {
+      setSaving(false)
+    }
+  }
+  return <div className="category-picker">
+    <label className="field"><span>{label}</span><select className="input" required={!optional} value={value} onChange={(event) => onChange(event.target.value)}><option value="">{optional ? "Sem categoria (opcional)" : "Escolha uma categoria"}</option>{categories.filter((category) => category.kind === kind).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
+    <button type="button" className="text-button" onClick={() => setCreating(!creating)}>{creating ? "Cancelar" : "+ Criar categoria"}</button>
+    {creating && <div className="inline-form category-create"><input className="input" aria-label="Nome da nova categoria" autoFocus placeholder={kind === "income" ? "Ex.: Salário, renda extra" : "Ex.: Moradia, alimentação"} value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void submit() } }}/><button type="button" className="btn btn-secondary" disabled={saving || !name.trim()} onClick={() => void submit()}>{saving ? "Salvando…" : "Criar e selecionar"}</button></div>}
+    <small className="category-help">Categorias agrupam lançamentos para facilitar a leitura e os limites mensais. Não são contas.</small>
+  </div>
+}

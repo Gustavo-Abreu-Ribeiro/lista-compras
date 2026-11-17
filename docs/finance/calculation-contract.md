@@ -16,6 +16,7 @@ saldo real = saldos iniciais das contas
 
 comprometido no mês = despesas planejadas no mês
                       + parcelas pendentes no mês
+                      + limite de categoria ainda não coberto por compromissos
 
 dinheiro seguro = max(0, saldo real - comprometido - mínimos de metas)
 
@@ -30,13 +31,55 @@ recorrentes, cenários e previsão por histórico serão adicionados em fases
 posteriores e devem entrar explicitamente na fórmula, nunca como comportamento
 oculto.
 
+## Recorrências mensais (FIN-002)
+
+- Cada regra ativa gera no máximo um lançamento `planned` por mês, a partir do
+  mês inicial escolhido. A chave local da ocorrência é `(recurrence_id, mês)`.
+- Uma ocorrência usa o valor e a descrição da regra no momento em que foi
+  materializada. Pausar a regra impede novas ocorrências; não apaga previsões
+  já criadas nem reescreve meses anteriores.
+- Renda recorrente planejada entra na projeção. Gastos recorrentes entram no
+  comprometido. O usuário confirma a ocorrência como realizada no fluxo de
+  lançamentos; a restrição única impede que a regra gere uma cópia.
+- O dia é limitado ao último dia do mês quando o mês não possui o dia escolhido.
+
+## Categorias e limites mensais
+
+Categoria é uma classificação opcional do lançamento (por exemplo, Moradia,
+Alimentação ou Salário). Não representa uma conta, não altera o saldo e não é
+obrigatória para registrar receita ou gasto. Categorias de renda e despesa são
+separadas.
+
+O limite mensal reserva somente o valor que ainda não está coberto por gastos
+realizados ou compromissos explícitos da mesma categoria:
+
+```text
+reserva adicional da categoria = max(0, limite - realizado - previsto)
+comprometido total = gastos previstos + parcelas pendentes + reservas adicionais
+restante do limite = max(0, limite - realizado - previsto)
+```
+
+Assim, uma despesa planejada ou parcela categorizada não é contada novamente
+como limite livre. O limite pode exceder o saldo que falta após os compromissos;
+nesse caso somente o compromisso explícito entra no cálculo.
+
+## Dívidas acompanhadas (FIN-002)
+
+O saldo da dívida é um valor de acompanhamento inserido/atualizado pelo usuário;
+ele não é somado ao saldo bancário nem abatido automaticamente após um gasto.
+Se o cadastro incluir pagamento mensal, o mesmo salvamento cria uma recorrência
+de gasto com a data de vencimento. A confirmação desse gasto não altera o saldo
+da dívida; o usuário atualiza o saldo devedor manualmente para refletir o
+extrato do credor. Assim, o pagamento mensal compromete a projeção uma única
+vez e não há amortização presumida.
+
 ## Parcelas
 
 Uma compra de `R$ 1.200,00` em 12 parcelas cria doze obrigações mensais. Cada
 obrigação recebe seu próprio valor em centavos; os centavos restantes são
-distribuídos nas primeiras parcelas. Marcar uma parcela como paga é uma ação
-explícita e, na fase de conciliação, deve gerar o lançamento realizado
-correspondente sem duplicação.
+distribuídos nas primeiras parcelas. Confirmar que uma parcela foi paga cria o
+gasto realizado e atualiza seu estado na mesma transação PostgreSQL. A chave da
+parcela impede um segundo lançamento, inclusive em caso de repetição da ação.
 
 ## Metas e investimentos
 

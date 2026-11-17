@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import AppNavigation from "./AppNavigation"
 import type { Session } from "@supabase/supabase-js"
 import { supabase } from "../../services/supabase"
 
@@ -40,8 +40,10 @@ export default function LoginLayout() {
       if (error) {
         setAuthStatus(error.message)
       } else {
-        setAuthStatus("Conta criada! Voce ja pode entrar.")
+        setAuthStatus("Conta criada. Se a confirmação de email estiver ativa, confirme seu endereço antes de entrar.")
       }
+    } catch (error) {
+      setAuthStatus(error instanceof Error ? error.message : String(error))
     } finally {
       setIsBusy(false)
     }
@@ -59,6 +61,8 @@ export default function LoginLayout() {
       if (error) {
         setAuthStatus(error.message)
       }
+    } catch (error) {
+      setAuthStatus(error instanceof Error ? error.message : String(error))
     } finally {
       setIsBusy(false)
     }
@@ -71,22 +75,7 @@ export default function LoginLayout() {
 
   return (
     <div className="page">
-      <nav className="top-nav">
-        <div className="brand">
-          <span className="badge">Lista</span>
-        </div>
-        <div className="nav-links">
-          <Link to="/" className="btn btn-ghost">
-            Compras
-          </Link>
-          <Link to="/games" className="btn btn-ghost">
-            Jogos
-          </Link>
-          <Link to="/settings" className="btn btn-ghost">
-            Ajustes
-          </Link>
-        </div>
-      </nav>
+      <AppNavigation />
 
       <div className="intro-shell">
         <section className="sync-card">
@@ -103,7 +92,9 @@ export default function LoginLayout() {
             )}
           </div>
 
-          {session ? (
+          {!supabase ? (
+            <p className="finance-notice" role="alert">Configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` em `.env.local` para habilitar login e dados na nuvem.</p>
+          ) : session ? (
             <div className="sync-actions">
               <p className="muted">Sessao ativa.</p>
               <button className="btn btn-ghost" onClick={signOut}>
@@ -144,17 +135,6 @@ export default function LoginLayout() {
         </section>
       </div>
 
-      <div className="bottom-nav">
-        <Link to="/" className="nav-link">
-          Compras
-        </Link>
-        <Link to="/games" className="nav-link">
-          Jogos
-        </Link>
-        <Link to="/settings" className="nav-link">
-          Ajustes
-        </Link>
-      </div>
     </div>
   )
 }

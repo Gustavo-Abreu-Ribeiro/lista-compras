@@ -6,10 +6,11 @@ validação real.
 | Contrato | Dono | Consumidor | Referência |
 | --- | --- | --- | --- |
 | Comandos Tauri | `src-tauri/src/commands/` | `src/features/*/api.ts` | `src-tauri/src/lib.rs` |
-| Esquema SQLite | `src-tauri/src/db/migrations.rs` | comandos e dados persistidos | [Arquitetura](../architecture.md) |
+| Esquema Supabase/RLS (alvo) | `supabase/migrations/` | adapters cloud e dados persistidos | [ADR-005](../adr/ADR-005-supabase-cloud-data.md) |
 | Tipos serializados | `src-tauri/src/models/` | `src/types/` e UI | modelos e tipos |
 | Configuração externa | ambiente do processo | Supabase e preços | [README](../../README.md#configuração-opcional) |
-| Finanças locais | comandos `finance.rs` | `src/features/finance/` | [Contrato de cálculos](../finance/calculation-contract.md) |
+| Histórico de preços | `item_links` e observações SQLite | compras e gráfico | [ADR-002](../adr/ADR-002-price-history.md) |
+| Finanças remotas (em migração) | Supabase Postgres/RLS | `src/features/finance/` | [Contrato de cálculos](../finance/calculation-contract.md) |
 
 ## Regras de mudança
 

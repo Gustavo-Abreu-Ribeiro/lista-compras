@@ -3,21 +3,20 @@
 Leia este arquivo antes de iniciar uma mudança. Ele é o resumo de execução mais
 curto do repositório; código, testes e Git continuam sendo a prova final.
 
-## Atividade Atual
+## Atividade Atual: CLOUD-001 (Migração para Supabase)
 
-- Estado: AGUARDANDO NOVA FRENTE
-- A Fase 1 Financeira (FIN-001) foi concluída e validada com sucesso através de testes no Rust.
-- O Dashboard Financeiro está operacional.
+- Estado: EM CURSO
+- Dono: Agente autônomo
+- Escopo: Migrar compras, jogos, preços e finanças para Supabase Auth/Postgres com RLS individual; retirar SQLite após importação conferida.
+- Prova atual: schema inicial foi executado no projeto (retorno do SQL Editor: “Success. No rows returned”); adapters de compras, jogos, preços e finanças usam Supabase; autenticação protege as rotas. Fluxos financeiros e responsividade estão em correção após relato de falha no runtime.
 
-## PRÓXIMO PASSO
+## PROXIMO PASSO
 
-Definir e iniciar a próxima frente de trabalho, que pode ser a união das compras (itens e categorias) na interface principal, ou avançar para a Fase 2 do Financeiro.
+1. Reiniciar `npm run tauri dev` e conferir criação de categoria, limite, lançamento e exclusão no fluxo financeiro.
+2. Validar Auth/RLS e importar a cópia local em Ajustes, conferindo as contagens.
+3. Só então usar a ação explícita para remover o SQLite deste dispositivo.
 
 ## Regra de retomada
 
 1. Confirme `git status`, este arquivo e `docs/development/`.
 2. Verifique a prova indicada antes de confiar nela.
-3. Reivindique a unidade no mesmo commit do primeiro passo, se houver trabalho
-   concorrente.
-4. Termine uma unidade coesa: implementar, validar, atualizar este arquivo e
-   o workboard. Não deixe uma alteração sem prova ou handoff exato.
