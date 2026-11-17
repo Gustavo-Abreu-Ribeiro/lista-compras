@@ -20,7 +20,7 @@ if (process.argv[1]?.replaceAll('\\', '/').endsWith('/release/github.mjs')) {
     const runs = await api('/actions/workflows/release.yml/runs?per_page=3');
     for (const run of runs.workflow_runs) {
       const jobs = await api(`/actions/runs/${run.id}/jobs`);
-      console.log(JSON.stringify({ id: run.id, sha: run.head_sha, status: run.status, conclusion: run.conclusion, jobs: jobs.jobs.map(job => ({ id: job.id, name: job.name, status: job.status, conclusion: job.conclusion, steps: job.steps.filter(step => step.status !== 'completed' || step.conclusion === 'failure').map(step => ({ name: step.name, status: step.status, conclusion: step.conclusion })) })) }));
+      console.log(JSON.stringify({ id: run.id, sha: run.head_sha, status: run.status, conclusion: run.conclusion, jobs: jobs.jobs.map(job => ({ id: job.id, name: job.name, status: job.status, conclusion: job.conclusion, steps: job.steps.filter(step => step.status === 'in_progress' || step.conclusion === 'failure').map(step => ({ name: step.name, status: step.status, conclusion: step.conclusion })) })) }));
     }
   } else if (command === 'dispatch') {
     await api('/actions/workflows/release.yml/dispatches', 'POST', { ref: process.argv[3] || 'main' });
