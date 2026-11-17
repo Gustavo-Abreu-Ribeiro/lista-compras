@@ -13,4 +13,8 @@
   Escape, setas, paletas, FAQ e downloads presentes/ausentes/falha da API.
 - Rust e contratos nativos não foram alterados; edição anterior de Cargo.toml
   preservada. Migração cloud continua com suas próprias pendências.
-- Publicação pública será registrada após verificar workflow e URL.
+- Publicado no GitHub Pages: https://gustavo-abreu-ribeiro.github.io/lista-compras/.
+  Workflow 44123748143 concluiu com sucesso; URL respondeu HTTP 200 com conteúdo
+  e referências aos prints corretos.
+- Verificação Chrome repetida contra a URL pública: todos os fluxos e quatro
+  larguras passaram, sem erros JavaScript.

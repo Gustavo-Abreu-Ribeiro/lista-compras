@@ -1,4 +1,4 @@
-# SITE-001 — Site público do aplicativo
+# Site público do aplicativo
 
 ## Visão e arquitetura
 
@@ -25,4 +25,8 @@ grande preexistente). Chrome headless validou 1440, 768, 390 e 320 px sem overfl
 imagens carregadas, abas por teclado, ampliação/fechamento, paletas, FAQ e três
 estados da API de releases. Nenhum erro JavaScript no navegador.
 
-Pendente somente publicar o commit e conferir workflow e resposta HTTP pública.
+Publicado em https://gustavo-abreu-ribeiro.github.io/lista-compras/.
+Workflow [44123748143](https://github.com/Gustavo-Abreu-Ribeiro/lista-compras/actions/runs/44123748143)
+concluiu com sucesso e a URL respondeu HTTP 200 com título e referências aos
+prints esperados. Fonte publicada: commit `5170a78`. A mesma verificação Chrome
+também passou contra a URL pública após a publicação.

@@ -11,7 +11,8 @@
   cinco prints reais dos componentes com dados fictícios, galeria acessível,
   paletas de demonstração, recursos, FAQ e consulta de instaladores nas releases
   públicas. Build frontend e QA Chrome em 1440/768/390/320 px passaram. GitHub
-  Pages habilitado para Actions; publicação do commit ainda em verificação.
+  Pages publicou com sucesso em https://gustavo-abreu-ribeiro.github.io/lista-compras/;
+  URL pública conferida com HTTP 200. Detalhes em `docs/product-site.md`.
 
 - Aplicativo Tauri 2 com frontend React/TypeScript e rotas base consolidadas.
 - A rota inicial `/` apresenta um panorama local de saldo real, comprometimento e parcelas do mês, volume da lista de compras, preços salvos recentemente e atalhos para Compras, Jogos e Finanças.

@@ -17,12 +17,12 @@ roadmap ou registro de atividades.
 
 ## SITE-001 — Site público e downloads
 
-- Status: in progress
+- Status: complete
 - Owner/lane: Codex
 - Scope: site estático em `website/` com identidade Feira, prints demonstrativos, aparências e downloads de releases reais; publicação no GitHub Pages.
 - Boundaries: não alterar dados, autenticação, contratos nativos ou o trabalho CLOUD-001; preservar edição prévia em Cargo.toml.
-- Evidence: `npm run build` passou; Chrome validou 1440/768/390/320 px, galeria, teclado, paletas, FAQ e três estados de downloads. GitHub Pages habilitado para Actions.
-- Next step: publicar o commit com `website/` e conferir execução de `.github/workflows/pages.yml` e resposta HTTP pública.
+- Evidence: `npm run build` passou; Chrome validou 1440/768/390/320 px, galeria, teclado, paletas, FAQ e três estados de downloads. Workflow Pages 44123748143 concluiu com sucesso; URL pública respondeu HTTP 200.
+- Next step: nenhuma pendência de implementação do site; releases com instaladores podem ser publicadas separadamente quando os binários estiverem validados.
 - Updated: 2026-11-17
 
 ## CLOUD-001 - Migrar persistência para Supabase
