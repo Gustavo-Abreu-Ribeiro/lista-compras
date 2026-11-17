@@ -6,6 +6,10 @@ com isolamento por usuário; o SQLite permanece legado até a migração dos dad
 
 ## Estado atual
 
+O [site de apresentação](https://gustavo-abreu-ribeiro.github.io/lista-compras/)
+explica os módulos e apresenta capturas reais com dados demonstrativos na
+identidade padrão Feira. Código e instruções em [website/](website/README.md).
+
 - Compras, jogos, histórico de preços e finanças usam Supabase Auth/Postgres
   com isolamento por usuário. O SQLite antigo serve apenas como origem da
   importação e só é removido após conferência explícita.

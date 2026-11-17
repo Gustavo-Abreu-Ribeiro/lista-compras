@@ -1,11 +1,17 @@
 ﻿# Estado atual da Lista de Compras
 
-> Última verificação documental: 2026-11-16
+> Última verificação documental: 2026-11-17
 >
 > Este é um resumo para retomada. Código, testes e comandos reproduzíveis são a
 > prova do comportamento da revisão atual.
 
 ## Implementado
+
+- Site de apresentação independente em `website/`, com identidade padrão Feira,
+  cinco prints reais dos componentes com dados fictícios, galeria acessível,
+  paletas de demonstração, recursos, FAQ e consulta de instaladores nas releases
+  públicas. Build frontend e QA Chrome em 1440/768/390/320 px passaram. GitHub
+  Pages habilitado para Actions; publicação do commit ainda em verificação.
 
 - Aplicativo Tauri 2 com frontend React/TypeScript e rotas base consolidadas.
 - A rota inicial `/` apresenta um panorama local de saldo real, comprometimento e parcelas do mês, volume da lista de compras, preços salvos recentemente e atalhos para Compras, Jogos e Finanças.
