@@ -6,6 +6,7 @@ alinhados.
 
 | Documento | Estado | Próxima prova |
 | --- | --- | --- |
+| [Releases do aplicativo](app-releases.md) | em curso | builds Windows/Android, assinatura APK e assets públicos |
 | [Fase 2 do financeiro](finance-phase-2.md) | em curso | `cargo test`, `cargo check` e `npm run build` |
 | [Migração para Supabase](cloud-data-migration.md) | em curso | validar Auth/RLS/CRUD em runtime e importar dados locais com conferência |
 

@@ -1,0 +1,11 @@
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+const pkg = JSON.parse(readFileSync('package.json'));
+const lock = JSON.parse(readFileSync('package-lock.json'));
+const tauri = JSON.parse(readFileSync('src-tauri/tauri.conf.json'));
+const rust = readFileSync('src-tauri/Cargo.toml', 'utf8').match(/^version = "([^"]+)"/m)?.[1];
+assert.equal(pkg.version, tauri.version);
+assert.equal(pkg.version, rust);
+assert.equal(pkg.version, lock.version);
+assert.equal(pkg.version, lock.packages[''].version);
+console.log(`Release versions agree: ${pkg.version}`);

@@ -5,7 +5,13 @@ e [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-17
+
 ### Added
+
+- Distribuição Windows x64 e Android ARM64 pelo GitHub Releases, com assinatura
+  Android persistente, SHA-256 e builds automatizados.
+- Site público na identidade Feira, com capturas demonstrativas reais do app.
 
 - Documentação de arquitetura, contratos, versionamento e continuidade entre
   agentes e sessões.

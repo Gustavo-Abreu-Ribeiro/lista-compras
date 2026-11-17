@@ -1,0 +1,133 @@
+name: Build and publish app release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: app-release
+  cancel-in-progress: false
+env:
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - run: npm ci
+      - run: node scripts/release/check-config.mjs
+      - run: cargo check --manifest-path src-tauri/Cargo.toml --locked
+      - run: npm run tauri -- build --bundles nsis --ci
+      - name: Check executable startup
+        shell: pwsh
+        run: |
+          $app = Start-Process -FilePath src-tauri/target/release/lista-compras.exe -WindowStyle Hidden -PassThru
+          Start-Sleep -Seconds 12
+          if ($app.HasExited) { throw "Application exited during startup: $($app.ExitCode)" }
+          Stop-Process -Id $app.Id
+      - name: Collect Windows installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release-assets -Force | Out-Null
+          $installers = @(Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe)
+          if ($installers.Count -ne 1) { throw 'Expected one Windows installer' }
+          Copy-Item -LiteralPath $installers[0].FullName -Destination release-assets/Lista-de-Compras-Windows-x64-setup.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: release-assets/*
+          if-no-files-found: error
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - name: Install Android toolchain
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.2.12479018'
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+      - run: npm ci
+      - run: node scripts/release/check-config.mjs
+      - name: Initialize generated Android build files
+        run: |
+          npm run tauri -- android init --ci --skip-targets-install
+          git show HEAD:src-tauri/gen/android/app/build.gradle.kts > src-tauri/gen/android/app/build.gradle.kts
+          chmod +x src-tauri/gen/android/gradlew
+      - name: Configure preserved Android signing identity
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: node scripts/release/android-signing.mjs
+      - run: npm run tauri -- android build --target aarch64 --apk true --aab false --ci
+      - name: Verify signed APK and package
+        run: |
+          mkdir -p release-assets
+          mapfile -t apks < <(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' -path '*release*')
+          test "${#apks[@]}" -eq 1
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "${apks[0]}"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "${apks[0]}" | sed -n '1,5p'
+          cp "${apks[0]}" release-assets/Lista-de-Compras-Android-arm64.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-installer
+          path: release-assets/*
+          if-no-files-found: error
+  publish:
+    needs: [windows, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-installer'
+          path: release-assets
+          merge-multiple: true
+      - name: Validate version and generate checksums
+        run: |
+          node scripts/release/check-version.mjs
+          cd release-assets
+          sha256sum *.exe *.apk > SHA256SUMS.txt
+      - name: Create annotated tag and publish verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('package.json')).version")
+          tag="v$version"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            test "$(git rev-list -n 1 "$tag")" = "$GITHUB_SHA"
+          else
+            git tag -a "$tag" "$GITHUB_SHA" -m "Lista de Compras $version — Windows e Android"
+            git push origin "$tag"
+          fi
+          gh release create "$tag" release-assets/* --verify-tag --title "Lista de Compras $version — Windows e Android" --notes-file docs/releases/0.2.0.md --latest

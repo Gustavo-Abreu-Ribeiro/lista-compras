@@ -15,6 +15,16 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
+## REL-001 — Releases Windows e Android 0.2.0
+
+- Status: in progress
+- Owner/lane: Codex
+- Scope: builds reproduzíveis Windows x64 e Android ARM64, assinatura Android preservada, checksums e release pública com configuração Supabase publicável.
+- Boundaries: sem migração/exclusão de dados, sem chaves privadas no Git ou app; manter as pendências CLOUD-001 explícitas.
+- Evidence: build frontend, cargo check, builds CI, assinatura APK, assets públicos e downloads no site.
+- Next step: configurar workflow `.github/workflows/release.yml`, provisionar secrets necessários e executar os builds.
+- Updated: 2026-11-17
+
 ## SITE-001 — Site público e downloads
 
 - Status: complete

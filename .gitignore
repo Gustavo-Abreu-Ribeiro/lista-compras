@@ -16,6 +16,8 @@ dist-ssr
 !.env.example
 src-tauri/gen/android/app/keystore.properties
 src-tauri/gen/android/app/*.keystore
+*.jks
+*.p12
 
 # Editor directories and files
 .vscode/*
