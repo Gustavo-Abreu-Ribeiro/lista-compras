@@ -37,7 +37,9 @@ também passou contra a URL pública após a publicação.
 Galeria com 12 combinações de tema/área, três cartões de comparação e três
 capturas móveis ampliáveis. Dez prints novos, com a mesma fixture isolada.
 Texto revisado para explicar recursos, instalação e limites sem slogans.
-QA local nas quatro larguras passou; publicação desta revisão em verificação.
+QA local e na URL pública passou nas quatro larguras. Publicação do commit
+`0602d2e` pelo Pages 44145187004 concluiu com sucesso. Downloads reais Windows
+e Android 0.3.0 também foram conferidos no navegador, sem mock da API.
 
 Proposta de nome/símbolo **Caderno**, direção escolhida pelo usuário, em
 `docs/brand/`. Mantida fora da identidade publicada enquanto é revisada.

@@ -5,6 +5,14 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 ## Atividade Atual: CLOUD-001 (Migração para Supabase)
 
+**SITE-002 concluída em 2026-11-17:** site com previews Feira/Cartucho/Aero em
+quatro áreas e no celular; texto reescrito de forma descritiva. Commit 0602d2e,
+Pages 44145187004 e QA na URL pública aprovados; downloads 0.3.0 conferidos.
+Direção de nome Caderno escolhida pelo usuário; proposta vetorial revisável em
+`docs/brand/caderno-proposal.html` e `docs/brand/proposta-caderno.png`.
+Há app de notas com esse nome; estudo em `docs/brand/naming.md`. Nenhuma troca
+de identidade/IDs/assinatura foi aplicada ao produto nesta entrega.
+
 **UI-AERO concluída em 2026-11-17:** Frutiger Aero disponível em um toque em
 Ajustes > Aparência no código atual. Build e QA Chrome desktop/mobile passaram;
 documentação em `docs/design/frutiger-aero.md`. **REL-002 concluída:** instaladores

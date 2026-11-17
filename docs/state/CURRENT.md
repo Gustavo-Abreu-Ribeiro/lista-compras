@@ -29,7 +29,10 @@
   com Feira/Cartucho/Frutiger Aero, comparação de temas, recursos, FAQ e consulta de instaladores nas releases
   públicas. Build frontend e QA Chrome em 1440/768/390/320 px passaram. GitHub
   Pages publicou com sucesso em https://gustavo-abreu-ribeiro.github.io/lista-compras/;
-  URL pública conferida com HTTP 200. Detalhes em `docs/product-site.md`.
+  Revisão de texto/previews publicada pelo Pages 44145187004 (commit 0602d2e),
+  com QA de todas as combinações e downloads 0.3.0 na URL pública. Estudo de
+  nome/símbolo Caderno em `docs/brand/`, sem renomear o produto. Detalhes em
+  `docs/product-site.md`.
 
 - Aplicativo Tauri 2 com frontend React/TypeScript e rotas base consolidadas.
 - A rota inicial `/` apresenta um panorama local de saldo real, comprometimento e parcelas do mês, volume da lista de compras, preços salvos recentemente e atalhos para Compras, Jogos e Finanças.

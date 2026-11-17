@@ -12,4 +12,5 @@
   fonte. Nome e logo permanecem como estudo; sem alterações de identificadores.
 - QA Chrome local: quatro larguras, 12 combinações de tema/área, três capturas
   móveis, teclado, modais, FAQ e três estados da API. Build frontend passou.
-- Publicação da revisão ainda em verificação.
+- Publicação do commit 0602d2e pelo Pages 44145187004 concluída. QA completa
+  repetida na URL pública passou; downloads reais da versão 0.3.0 conferidos.

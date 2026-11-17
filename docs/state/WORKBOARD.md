@@ -17,12 +17,12 @@ roadmap ou registro de atividades.
 
 ## SITE-002 — Previews, texto e estudo de marca
 
-- Status: in progress
+- Status: complete
 - Owner/lane: Codex
 - Scope: prints reais Feira/Cartucho/Aero no site, texto descritivo e proposta visual Caderno escolhida pelo usuário.
 - Boundaries: nome/logo como estudo revisável; não trocar IDs, domínio, assinatura, dados ou instaladores.
-- Evidence: capturas isoladas, build, QA responsivo/galeria e publicação Pages; proposta vetorial documentada.
-- Next step: capturar temas com fixtures e revisar `website/`; preparar `docs/brand/`.
+- Evidence: commit 0602d2e e Pages 44145187004 publicados; build aprovado; QA local/pública passou em quatro larguras e 12 combinações de tema/área. Downloads reais 0.3.0 conferidos. Proposta vetorial em `docs/brand/`.
+- Next step: site sem pendência; nome e símbolo Caderno permanecem como proposta de identidade revisável, com uso existente do nome documentado.
 - Updated: 2026-11-17
 
 ## REL-002 — Publicar Frutiger Aero 0.3.0
