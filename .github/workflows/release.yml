@@ -132,4 +132,4 @@ jobs:
             git tag -a "$tag" "$GITHUB_SHA" -m "Lista de Compras $version — Windows e Android"
             git push origin "$tag"
           fi
-          gh release create "$tag" release-assets/* --verify-tag --title "Lista de Compras $version — Windows e Android" --notes-file docs/releases/0.2.0.md --latest
+          gh release create "$tag" release-assets/* --verify-tag --title "Lista de Compras $version — Windows e Android" --notes-file "docs/releases/$version.md" --latest

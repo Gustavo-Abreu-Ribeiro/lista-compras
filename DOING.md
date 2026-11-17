@@ -5,6 +5,15 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 ## Atividade Atual: CLOUD-001 (Migração para Supabase)
 
+**REL-001 concluída em 2026-11-17:** release Windows x64/Android ARM64 0.2.0
+em https://github.com/Gustavo-Abreu-Ribeiro/lista-compras/releases/tag/v0.2.0.
+Execução 44133883561 passou; tag anotada no commit 732cc08. Assinatura APK,
+arranque Windows, SHA-256 dos downloads públicos e links reais no site
+verificados. Chave Android preservada fora do Git em
+`~/.codex/private/lista-compras/`; preservar backup para futuras atualizações.
+Evidência em `docs/releases/0.2.0-verification.md`. As próximas provas da frente
+cloud permanecem abaixo; nenhuma base SQLite foi removida.
+
 - Estado: EM CURSO
 - Dono: Agente autônomo
 - Escopo: Migrar compras, jogos, preços e finanças para Supabase Auth/Postgres com RLS individual; retirar SQLite após importação conferida.

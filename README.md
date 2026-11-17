@@ -42,6 +42,9 @@ Veja [ADR-005](docs/adr/ADR-005-supabase-cloud-data.md), a
 
 ## Desenvolvimento
 
+Instaladores e notas ficam no [GitHub Releases](https://github.com/Gustavo-Abreu-Ribeiro/lista-compras/releases).
+Veja o [processo de distribuição](docs/releases/README.md) para builds e assinatura.
+
 Pré-requisitos: Node.js/npm, Rust e os pré-requisitos do Tauri na plataforma.
 
 ```bash

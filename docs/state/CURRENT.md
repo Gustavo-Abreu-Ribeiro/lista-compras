@@ -7,6 +7,14 @@
 
 ## Implementado
 
+- Release pública 0.2.0 para Windows x64 (NSIS, sem Authenticode comercial) e
+  Android ARM64 (APK assinado), com SHA-256. Os dois builds CI, assinatura APK,
+  arranque do executável Windows e downloads públicos foram verificados. O site
+  já reconhece os instaladores. Backup privado da chave Android fora do Git;
+  instruções em `docs/releases/README.md` e evidência em
+  `docs/releases/0.2.0-verification.md`. CRUD/RLS e dispositivos reais continuam
+  com as pendências abaixo.
+
 - Site de apresentação independente em `website/`, com identidade padrão Feira,
   cinco prints reais dos componentes com dados fictícios, galeria acessível,
   paletas de demonstração, recursos, FAQ e consulta de instaladores nas releases

@@ -28,6 +28,9 @@ if (process.argv[1]?.replaceAll('\\', '/').endsWith('/release/github.mjs')) {
   } else if (command === 'rerun') {
     await api(`/actions/runs/${process.argv[3]}/rerun-failed-jobs`, 'POST');
     console.log('Failed jobs queued');
+  } else if (command === 'cancel') {
+    await api(`/actions/runs/${process.argv[3]}/cancel`, 'POST');
+    console.log('Obsolete workflow cancelled');
   } else if (command === 'logs') {
     const response = await fetch(`https://api.github.com/repos/${repository}/actions/jobs/${process.argv[3]}/logs`, { headers });
     if (!response.ok) throw new Error(`Logs ${response.status}`);
