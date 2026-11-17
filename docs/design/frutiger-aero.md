@@ -50,6 +50,7 @@ em `scripts/site/demo-context.mjs`, bloqueando o host Supabase remoto.
 
 Revisão React: componentes sem novos efeitos, chamadas de dados ou hooks
 condicionais; ícones decorativos e botões de tema com `aria-pressed`.
-Não houve mudança de lógica Rust. A distribuição com esta aparência está sendo
-preparada na versão 0.3.0 para Windows e Android, com a assinatura anterior
-preservada. A versão 0.2.0 continua disponível como release histórica.
+Não houve mudança de lógica Rust. A aparência está na release 0.3.0 para Windows
+e Android, com assinatura Android anterior preservada e downloads verificados
+no site. Evidência em `docs/releases/0.3.0-verification.md`. A versão 0.2.0
+continua disponível como release histórica.

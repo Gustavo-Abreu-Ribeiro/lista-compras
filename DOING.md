@@ -7,11 +7,12 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 **UI-AERO concluída em 2026-11-17:** Frutiger Aero disponível em um toque em
 Ajustes > Aparência no código atual. Build e QA Chrome desktop/mobile passaram;
-documentação em `docs/design/frutiger-aero.md`. **REL-002 em execução:** publicar
-os instaladores 0.3.0 com a nova aparência. Próximo passo: conferir a execução
-de `.github/workflows/release.yml`, executar
-`node scripts/release/verify-downloads.mjs v0.3.0` e `verify-site.mjs` para
-comprovar assets e links públicos. Os binários 0.2.0 anteriores permanecem.
+documentação em `docs/design/frutiger-aero.md`. **REL-002 concluída:** instaladores
+0.3.0 publicados com a nova aparência. Commit descritivo 444fb0c, tag anotada
+v0.3.0 e workflow 44141028050 conferidos; SHA-256 dos dois assets públicos e
+links reais no site passaram. Evidência em `docs/releases/0.3.0-verification.md`.
+Os binários 0.2.0 anteriores permanecem disponíveis. Próximas provas da frente
+cloud continuam abaixo.
 
 **REL-001 concluída em 2026-11-17:** release Windows x64/Android ARM64 0.2.0
 em https://github.com/Gustavo-Abreu-Ribeiro/lista-compras/releases/tag/v0.2.0.

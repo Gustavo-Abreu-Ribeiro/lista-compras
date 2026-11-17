@@ -10,8 +10,11 @@
 - Frutiger Aero é a nona aparência, selecionável em um toque em Ajustes. Altera
   navegação, composição, superfícies e controles em todas as áreas, com paisagem
   vetorial local, dock móvel e persistência da preferência. Build e QA de seis
-  rotas em 1440/768/390/320 px passaram. Não está nos instaladores 0.2.0 já
-  publicados. Veja `docs/design/frutiger-aero.md`.
+  rotas em 1440/768/390/320 px passaram. Incluído nos instaladores 0.3.0 publicados
+  para Windows x64 e Android ARM64, com assinatura Android preservada. CI
+  44141028050 passou; SHA-256 dos assets públicos e links no site foram
+  conferidos. Veja `docs/design/frutiger-aero.md` e
+  `docs/releases/0.3.0-verification.md`.
 
 - Release pública 0.2.0 para Windows x64 (NSIS, sem Authenticode comercial) e
   Android ARM64 (APK assinado), com SHA-256. Os dois builds CI, assinatura APK,
