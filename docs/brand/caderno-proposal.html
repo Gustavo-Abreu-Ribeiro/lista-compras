@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-BR">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  /><title>Caderno — estudo de identidade</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f2ecd9;
+      color: #26382f;
+      font:
+        17px/1.6 "Segoe UI",
+        sans-serif;
+      padding: 50px;
+    }
+    main {
+      max-width: 1180px;
+      margin: auto;
+    }
+    .label {
+      font:
+        12px Consolas,
+        monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #697269;
+    }
+    h1 {
+      font:
+        64px Georgia,
+        serif;
+      margin: 12px 0 20px;
+    }
+    h2 {
+      font:
+        36px Georgia,
+        serif;
+      letter-spacing: -0.025em;
+      margin: 0;
+    }
+    p {
+      max-width: 800px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin: 40px 0;
+    }
+    .card {
+      padding: 30px;
+      border: 1px solid #d4c9ae;
+      border-radius: 10px;
+      background: #fff9e9;
+      min-height: 340px;
+    }
+    .lockup {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 24px 0;
+    }
+    .symbol {
+      width: 70px;
+      height: 70px;
+    }
+    .dark {
+      background: #0e0e10;
+      color: #ede3ce;
+      border-radius: 0;
+      border-color: #34343a;
+    }
+    .dark h2 {
+      font-family: Impact, sans-serif;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .aero {
+      background: linear-gradient(140deg, #fff, #ddf5ff 60%, #d7f2b7);
+      color: #173e57;
+      border-color: #fff;
+      box-shadow:
+        inset 0 1px #fff,
+        0 8px 20px #12628a22;
+    }
+    .aero h2 {
+      font-family: "Segoe UI", sans-serif;
+      font-weight: 300;
+    }
+    .small-icons {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 25px;
+    }
+    .small-icons img {
+      display: block;
+    }
+    footer {
+      border-top: 1px solid #d4c9ae;
+      padding-top: 24px;
+      font-size: 14px;
+      color: #697269;
+    }
+    .card p {
+      font-size: 14px;
+    }
+    @media (max-width: 760px) {
+      body {
+        padding: 24px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 48px;
+      }
+    }
+  </style>
+  <main>
+    <span class="label"
+      >Estudo de nome e símbolo · não aplicado ao produto</span
+    >
+    <h1>Caderno</h1>
+    <p>
+      Compras, finanças e jogos são registros pessoais. O nome deixa de
+      descrever apenas uma das áreas do aplicativo e mantém a referência ao
+      caderno que já existe na aparência padrão.
+    </p>
+    <div class="grid">
+      <article class="card">
+        <span class="label">Aparência padrão / Feira</span>
+        <div class="lockup">
+          <img
+            class="symbol"
+            src="caderno-symbol.svg"
+            alt="Proposta de símbolo: caderno com lombada, páginas e marcador"
+          />
+          <h2>Caderno</h2>
+        </div>
+        <p>
+          Um caderno visto de frente, com lombada marcada e uma aba. O vazio da
+          página forma um C; o marcador liga o símbolo às divisórias das áreas.
+        </p>
+        <div class="small-icons">
+          <img
+            src="caderno-symbol.svg"
+            width="48"
+            height="48"
+            alt="Símbolo em 48 pixels"
+          /><img
+            src="caderno-symbol.svg"
+            width="32"
+            height="32"
+            alt="Símbolo em 32 pixels"
+          /><img
+            src="caderno-symbol.svg"
+            width="16"
+            height="16"
+            alt="Símbolo em 16 pixels"
+          />
+        </div>
+      </article>
+      <article class="card dark">
+        <span class="label">Adaptação / Cartucho</span>
+        <div class="lockup">
+          <svg class="symbol" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M18 5h38v45l-9 9H9V14Z" fill="#ff4a3d" />
+            <path d="M24 14h24v36H24Z" fill="#0e0e10" />
+            <path d="M37 14h7v13l-3.5-3-3.5 3Z" fill="#ede3ce" />
+            <path
+              d="M16 20h3m-3 12h3m-3 12h3"
+              stroke="#0e0e10"
+              stroke-width="3"
+            />
+          </svg>
+          <h2>Caderno</h2>
+        </div>
+        <p>
+          A mesma estrutura em alto contraste, com cantos recortados. A
+          identidade do tema muda sem trocar o símbolo por outro objeto.
+        </p>
+      </article>
+      <article class="card aero">
+        <span class="label">Adaptação / Frutiger Aero</span>
+        <div class="lockup">
+          <svg class="symbol" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="g" x2="0" y2="1">
+                <stop stop-color="#a9e668" />
+                <stop offset=".5" stop-color="#42a65c" />
+                <stop offset="1" stop-color="#158dc4" />
+              </linearGradient>
+            </defs>
+            <rect
+              x="9"
+              y="5"
+              width="47"
+              height="54"
+              rx="11"
+              fill="url(#g)"
+              stroke="white"
+            />
+            <path
+              d="M24 14h20a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H24Z"
+              fill="#f5fcff"
+            />
+            <path d="M37 14h7v13l-3.5-3-3.5 3Z" fill="#087db5" />
+            <path
+              d="M16 20h3m-3 12h3m-3 12h3"
+              stroke="white"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+            <ellipse cx="32" cy="15" rx="18" ry="7" fill="white" opacity=".3" />
+          </svg>
+          <h2>Caderno</h2>
+        </div>
+        <p>
+          Volume, reflexo e gradiente ficam no acabamento. A lombada e o
+          marcador continuam reconhecíveis nas versões plana e brilhante.
+        </p>
+      </article>
+    </div>
+    <footer>
+      Proposta para discussão. Já existe um aplicativo de notas chamado Caderno;
+      o nome não foi validado como marca disponível. Identificadores do app,
+      domínio, dados e assinaturas permanecem inalterados. Descrição curta
+      sugerida: “Compras, finanças e jogos”.
+    </footer>
+  </main>
+</html>

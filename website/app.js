@@ -1,28 +1,54 @@
 const screens = {
   overview: [
     "01 / VISÃO GERAL",
-    "Um ponto de partida para o seu dia.",
-    "Saldo real, compromissos do mês, itens da lista e preços recentes. Uma visão reunida para decidir por onde começar.",
+    "Resumo",
+    "Saldo real, compromissos do mês, itens da lista e preços salvos recentemente.",
   ],
   shopping: [
     "02 / COMPRAS",
-    "A ideia, o item e o link. Juntos.",
-    "Organize por categorias, escolha um item e encontre os links de lojas que você guardou. Consulte os valores e o histórico registrado antes de decidir.",
+    "Itens e links de lojas",
+    "Selecione uma categoria e um item para consultar os links e o histórico de preços registrados.",
   ],
   finance: [
     "03 / FINANÇAS",
-    "Entenda o mês antes do próximo passo.",
-    "Separe o que já aconteceu do que está planejado. Acompanhe saldos, parcelas, orçamentos e metas com os valores que você registra.",
+    "Controle financeiro manual",
+    "O resumo separa movimentações realizadas e compromissos previstos. O planejamento inclui parcelas, orçamentos e metas.",
   ],
   games: [
     "04 / JOGOS",
-    "Sua próxima aventura está na lista.",
-    "Guarde os links dos jogos, acompanhe o que está jogando e marque o que já terminou. Um espaço próprio para os seus momentos de pausa.",
+    "Lista e progresso dos jogos",
+    "Cadastre nome e link e marque cada jogo como pendente, em andamento ou concluído.",
   ],
 };
 const tabs = [...document.querySelectorAll("[data-screen]")];
+const themeNames = {
+  light: "Feira",
+  cartucho: "Cartucho",
+  aero: "Frutiger Aero",
+};
+let appTheme = "light";
+let activeScreen = "overview";
+const imageDescription = (name) => {
+  const match = /^(cartucho|aero)-(.*)$/.exec(name);
+  const theme = match ? themeNames[match[1]] : "Feira";
+  const screen = match ? match[2] : name;
+  return `${theme} · ${screen === "mobile" ? "Visão geral no celular" : screens[screen]?.[1] || "Captura do app"} · dados fictícios`;
+};
+document.querySelectorAll("[data-app-theme]").forEach((button) =>
+  button.addEventListener("click", () => {
+    appTheme = button.dataset.appTheme;
+    document
+      .querySelectorAll("[data-app-theme]")
+      .forEach((other) =>
+        other.setAttribute("aria-pressed", String(other === button)),
+      );
+    selectScreen(activeScreen);
+  }),
+);
 function selectScreen(name, focus = false) {
   if (!screens[name]) return;
+  activeScreen = name;
+  const imageName = appTheme === "light" ? name : `${appTheme}-${name}`;
   tabs.forEach((tab) => {
     const selected = tab.dataset.screen === name;
     tab.setAttribute("aria-selected", String(selected));
@@ -32,10 +58,11 @@ function selectScreen(name, focus = false) {
   document
     .querySelector("#screen-panel")
     .setAttribute("aria-labelledby", `tab-${name}`);
-  document.querySelector("#gallery-image").src = `assets/${name}.png`;
-  document.querySelector("#gallery-image").alt =
-    `${screens[name][1]} Captura real do app com dados demonstrativos.`;
-  document.querySelector("#gallery-open").dataset.image = name;
+  document.querySelector("#gallery-image").src = `assets/${imageName}.png`;
+  document.querySelector("#gallery-image").alt = imageDescription(imageName);
+  document.querySelector("#gallery-open").dataset.image = imageName;
+  document.querySelector("#gallery-caption").textContent =
+    `Tema ${themeNames[appTheme]} · captura do app com dados fictícios`;
   ["#screen-number", "#screen-title", "#screen-description"].forEach(
     (id, i) => (document.querySelector(id).textContent = screens[name][i]),
   );
@@ -60,23 +87,14 @@ document
   .forEach((link) =>
     link.addEventListener("click", () => selectScreen(link.dataset.select)),
   );
-document.querySelectorAll("[data-theme]").forEach((button) =>
-  button.addEventListener("click", () => {
-    document.documentElement.dataset.theme = button.dataset.theme;
-    document
-      .querySelectorAll("[data-theme]")
-      .forEach((choice) =>
-        choice.setAttribute("aria-pressed", String(choice === button)),
-      );
-  }),
-);
 const dialog = document.querySelector("#image-dialog");
 document.querySelectorAll("[data-image]").forEach((button) =>
   button.addEventListener("click", () => {
     const name = button.dataset.image;
     document.querySelector("#expanded-image").src = `assets/${name}.png`;
-    document.querySelector("#expanded-image").alt =
-      `${screens[name][1]} Dados demonstrativos.`;
+    document.querySelector("#expanded-image").alt = imageDescription(name);
+    document.querySelector("#image-dialog-title").textContent =
+      imageDescription(name);
     dialog.showModal();
   }),
 );
@@ -144,7 +162,7 @@ async function loadDownloads() {
       }
     }
     status.textContent = available
-      ? "Disponibilidade conferida nas releases públicas do projeto."
+      ? "Downloads da última release disponível para cada plataforma."
       : "Os instaladores ainda não foram publicados. Acompanhe as releases para baixar quando estiverem disponíveis.";
   } catch {
     status.textContent =

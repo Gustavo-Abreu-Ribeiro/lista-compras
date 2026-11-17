@@ -19,7 +19,7 @@ URL: https://gustavo-abreu-ribeiro.github.io/lista-compras/
 
 ## Prints e verificação
 
-As cinco capturas usam componentes reais do app com dados fictícios. O script
+As quinze capturas usam componentes reais do app com dados fictícios. O script
 `scripts/site/capture.mjs` intercepta o módulo Supabase somente no navegador de
 captura, bloqueia o host remoto e não faz login nem grava dados.
 
@@ -28,12 +28,19 @@ dependências do projeto e use o Chrome instalado:
 
 ```sh
 node scripts/site/capture.mjs <caminho-ou-URL-do-modulo-playwright-core>
+node scripts/site/capture-themes.mjs <caminho-ou-URL-do-modulo-playwright-core>
 node scripts/site/verify.mjs <caminho-ou-URL-do-modulo-playwright-core>
 ```
 
 O verificador usa a prévia em `http://127.0.0.1:4173`, grava evidências em
 `dist/site-qa/` (ignorado) e cobre desktop/mobile, imagens, galeria, teclado,
-paletas, FAQ e estados dos downloads. Não adiciona dependências ao app.
+as 12 combinações de tema/área (Feira, Cartucho e Frutiger Aero), ampliação das
+três capturas móveis, FAQ e estados dos downloads. Não adiciona dependências ao app.
+
+O seletor troca somente a captura e sua legenda; o site mantém a identidade
+Feira e não muda a preferência do aplicativo. Os textos descrevem recursos,
+instalação e limites. O estudo de nome e símbolo Caderno fica separado em
+`docs/brand/`, sem aplicar a renomeação ao produto publicado.
 
 ## Downloads
 

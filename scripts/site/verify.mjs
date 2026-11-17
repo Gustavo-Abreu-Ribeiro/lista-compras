@@ -55,9 +55,53 @@ for (const width of [1440, 768, 390, 320]) {
   );
   await page.keyboard.press("Escape");
   assert(!(await page.locator("#image-dialog").isVisible()));
-  await page.getByRole("button", { name: "Horta", exact: true }).click();
-  assert.equal(await page.locator("html").getAttribute("data-theme"), "ocean");
-  await page.getByRole("button", { name: "Feira", exact: true }).click();
+  for (const [theme, label] of [
+    ["cartucho", "Cartucho"],
+    ["aero", "Frutiger Aero"],
+    ["light", "Feira"],
+  ]) {
+    await page
+      .getByRole("group", { name: "Tema das capturas" })
+      .getByRole("button", { name: label, exact: true })
+      .click();
+    for (const [screen, label] of [
+      ["overview", "Visão geral"],
+      ["shopping", "Compras"],
+      ["finance", "Finanças"],
+      ["games", "Jogos"],
+    ]) {
+      await page.getByRole("tab", { name: label, exact: true }).click();
+      const name = theme === "light" ? screen : `${theme}-${screen}`;
+      assert.equal(
+        await page.locator("#gallery-image").getAttribute("src"),
+        `assets/${name}.png`,
+      );
+      await page.locator("#gallery-image").evaluate((img) => img.decode());
+      await page.locator("#gallery-open").click();
+      assert.equal(
+        await page.locator("#expanded-image").getAttribute("src"),
+        `assets/${name}.png`,
+      );
+      await page.keyboard.press("Escape");
+    }
+  }
+  for (const [index, name] of [
+    "mobile",
+    "cartucho-mobile",
+    "aero-mobile",
+  ].entries()) {
+    await page
+      .locator(".theme-examples article")
+      .nth(index)
+      .getByRole("button", { name: "Ver no celular ↗" })
+      .click();
+    assert.equal(
+      await page.locator("#expanded-image").getAttribute("src"),
+      `assets/${name}.png`,
+    );
+    await page.locator("#expanded-image").evaluate((img) => img.decode());
+    await page.keyboard.press("Escape");
+  }
   await page.getByText("Posso usar sem internet?", { exact: true }).click();
   assert(
     await page
@@ -131,5 +175,5 @@ assert(
 assert.deepEqual(errors, []);
 await browser.close();
 console.log(
-  "PASS: 4 viewport widths; images; keyboard tabs; gallery dialog; palettes; FAQ; downloads available, absent and API failure; no browser errors.",
+  "PASS: 4 widths; all 12 theme/route combinations; desktop and mobile image dialogs; keyboard tabs; FAQ; downloads present/absent/API failure; no browser errors.",
 );

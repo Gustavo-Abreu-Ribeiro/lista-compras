@@ -14,15 +14,16 @@ credenciais nem consulta dados de negócio. Não altera o aplicativo.
 - Downloads usam somente assets de releases públicas, nunca URLs inventadas.
 - Falha da API mantém acesso à página de releases; ausência de instalador é
   indicada por plataforma. Android usa APK, Windows usa EXE/MSI.
-- Exploração de aparências é local à página e começa em Feira.
+- O seletor começa em Feira e troca capturas/legendas entre Feira, Cartucho e
+  Frutiger Aero nas quatro áreas. Não muda o tema do site nem do aplicativo.
 - Entrega: página responsiva, capturas, navegação, galeria, aparências, downloads,
   FAQ, validação no navegador, workflow e publicação verificada por HTTP.
 
 ## Estado e prova
 
-Página e cinco capturas implementadas. `npm run build` passou (aviso de chunk
+Página e quinze capturas implementadas. `npm run build` passou (aviso de chunk
 grande preexistente). Chrome headless validou 1440, 768, 390 e 320 px sem overflow,
-imagens carregadas, abas por teclado, ampliação/fechamento, paletas, FAQ e três
+imagens carregadas, abas por teclado, ampliação/fechamento, temas, FAQ e três
 estados da API de releases. Nenhum erro JavaScript no navegador.
 
 Publicado em https://gustavo-abreu-ribeiro.github.io/lista-compras/.
@@ -30,3 +31,13 @@ Workflow [44123748143](https://github.com/Gustavo-Abreu-Ribeiro/lista-compras/ac
 concluiu com sucesso e a URL respondeu HTTP 200 com título e referências aos
 prints esperados. Fonte publicada: commit `5170a78`. A mesma verificação Chrome
 também passou contra a URL pública após a publicação.
+
+## Revisão de previews e texto (SITE-002)
+
+Galeria com 12 combinações de tema/área, três cartões de comparação e três
+capturas móveis ampliáveis. Dez prints novos, com a mesma fixture isolada.
+Texto revisado para explicar recursos, instalação e limites sem slogans.
+QA local nas quatro larguras passou; publicação desta revisão em verificação.
+
+Proposta de nome/símbolo **Caderno**, direção escolhida pelo usuário, em
+`docs/brand/`. Mantida fora da identidade publicada enquanto é revisada.

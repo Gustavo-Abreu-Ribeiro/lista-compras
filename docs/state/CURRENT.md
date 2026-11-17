@@ -25,8 +25,8 @@
   com as pendências abaixo.
 
 - Site de apresentação independente em `website/`, com identidade padrão Feira,
-  cinco prints reais dos componentes com dados fictícios, galeria acessível,
-  paletas de demonstração, recursos, FAQ e consulta de instaladores nas releases
+  quinze prints reais dos componentes com dados fictícios, galeria acessível
+  com Feira/Cartucho/Frutiger Aero, comparação de temas, recursos, FAQ e consulta de instaladores nas releases
   públicas. Build frontend e QA Chrome em 1440/768/390/320 px passaram. GitHub
   Pages publicou com sucesso em https://gustavo-abreu-ribeiro.github.io/lista-compras/;
   URL pública conferida com HTTP 200. Detalhes em `docs/product-site.md`.

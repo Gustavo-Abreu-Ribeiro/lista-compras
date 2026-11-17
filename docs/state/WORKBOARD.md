@@ -15,6 +15,16 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
+## SITE-002 — Previews, texto e estudo de marca
+
+- Status: in progress
+- Owner/lane: Codex
+- Scope: prints reais Feira/Cartucho/Aero no site, texto descritivo e proposta visual Caderno escolhida pelo usuário.
+- Boundaries: nome/logo como estudo revisável; não trocar IDs, domínio, assinatura, dados ou instaladores.
+- Evidence: capturas isoladas, build, QA responsivo/galeria e publicação Pages; proposta vetorial documentada.
+- Next step: capturar temas com fixtures e revisar `website/`; preparar `docs/brand/`.
+- Updated: 2026-11-17
+
 ## REL-002 — Publicar Frutiger Aero 0.3.0
 
 - Status: complete
