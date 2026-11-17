@@ -1,7 +1,8 @@
 // Read-only verification of public release assets, streamed without saving binaries.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-const tag = process.argv[2] || 'v0.2.0';
+const tag = process.argv[2] || `v${JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version}`;
 const response = await fetch(`https://api.github.com/repos/Gustavo-Abreu-Ribeiro/lista-compras/releases/tags/${encodeURIComponent(tag)}`);
 assert.equal(response.status, 200, 'Release must be public');
 const release = await response.json();

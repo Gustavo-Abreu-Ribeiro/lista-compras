@@ -6,7 +6,7 @@ import { supabase } from "../../services/supabase"
 import { getLegacyMigrationStatus, importLegacyData, removeLegacyDatabase } from "../../features/migration/api"
 
 export default function SettingsLayout() {
-  const themes = ["light", "ocean", "sunset", "dark", "berry", "blueprint", "citrus", "cartucho"] as const
+  const themes = ["light", "ocean", "sunset", "dark", "berry", "blueprint", "citrus", "cartucho", "aero"] as const
   const themeNames: Record<(typeof themes)[number], string> = {
     light: "Feira",
     ocean: "Horta",
@@ -16,6 +16,7 @@ export default function SettingsLayout() {
     blueprint: "Azulejo",
     citrus: "Limão",
     cartucho: "Cartucho",
+    aero: "Frutiger Aero",
   }
   const [themeIndex, setThemeIndex] = useState(0)
   const [session, setSession] = useState<Session | null>(null)
@@ -142,7 +143,7 @@ export default function SettingsLayout() {
           <div>
             <p className="eyebrow">Visual</p>
             <h2>Aparência</h2>
-            <p className="muted">Escolha a identidade visual do app. Cartucho transforma a navegação e as telas com um toque.</p>
+            <p className="muted">Escolha a identidade visual do app. Cartucho e Frutiger Aero transformam a navegação e as telas com um toque.</p>
           </div>
           <div className="theme-grid">
             {themes.map((theme) => (
@@ -155,6 +156,7 @@ export default function SettingsLayout() {
                 <span className="theme-swatch" aria-hidden="true" />
                 {themeNames[theme]}
                 {theme === "cartucho" && <small className="cartucho-theme-detail">Navegação, painéis e jogos em nova identidade</small>}
+                {theme === "aero" && <small className="aero-theme-detail">Céu, água e vidro. Uma nova atmosfera em um toque.</small>}
               </button>
             ))}
           </div>

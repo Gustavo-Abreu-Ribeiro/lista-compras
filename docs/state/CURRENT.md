@@ -7,6 +7,12 @@
 
 ## Implementado
 
+- Frutiger Aero é a nona aparência, selecionável em um toque em Ajustes. Altera
+  navegação, composição, superfícies e controles em todas as áreas, com paisagem
+  vetorial local, dock móvel e persistência da preferência. Build e QA de seis
+  rotas em 1440/768/390/320 px passaram. Não está nos instaladores 0.2.0 já
+  publicados. Veja `docs/design/frutiger-aero.md`.
+
 - Release pública 0.2.0 para Windows x64 (NSIS, sem Authenticode comercial) e
   Android ARM64 (APK assinado), com SHA-256. Os dois builds CI, assinatura APK,
   arranque do executável Windows e downloads públicos foram verificados. O site
@@ -26,7 +32,7 @@
 - A rota inicial `/` apresenta um panorama local de saldo real, comprometimento e parcelas do mês, volume da lista de compras, preços salvos recentemente e atalhos para Compras, Jogos e Finanças.
 - A experiência principal de compras foi unida à interface principal (rota padrão `/`), removendo a tela introdutória desnecessária.
 - Navegação principal compartilhada entre Compras, Jogos e Finanças; Ajustes fica acessível como destino secundário. Em telas estreitas, as áreas principais usam uma barra inferior persistente.
-- Identidade visual transversal parte de uma caderneta de casa: marca de cesta em SVG, contrastes de feira, etiquetas e divisórias. Oito aparências podem ser escolhidas em Ajustes; Cartucho troca também a navegação, composição dos painéis e apresentação dos jogos.
+- Identidade visual transversal parte de uma caderneta de casa: marca de cesta em SVG, contrastes de feira, etiquetas e divisórias. Nove aparências podem ser escolhidas em Ajustes; Cartucho e Frutiger Aero trocam também navegação e composição dos painéis.
 - Cadastro de item permite escolher uma categoria existente ou criar categoria e item no mesmo fluxo.
 - Categorias ficam empilhadas verticalmente em telas pequenas; os links de loja só aparecem após selecionar um item.
 - Finanças tem três destinos claros (Resumo, Planejar, Movimentar); categorias são opcionais e podem ser criadas dentro do formulário do lançamento. O resumo inclui gráfico realizado de seis meses e orientação inicial para cadastrar o saldo.

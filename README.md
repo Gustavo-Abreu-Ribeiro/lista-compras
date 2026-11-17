@@ -24,6 +24,10 @@ Em **Ajustes > Aparência**, o botão **Cartucho** aplica a identidade escura co
 sidebar numerada, painéis chanfrados e moldura na área de Jogos. A seleção é
 salva no dispositivo. Veja [as regras visuais](docs/DESIGN.md).
 
+O botão **Frutiger Aero**, na mesma área, aplica com um toque a identidade de
+vidro, céu e água: navegação com ícones brilhantes, painéis translúcidos e
+composição própria em desktop e celular. Veja [a documentação visual](docs/design/frutiger-aero.md).
+
 O módulo [Financeiro pessoal](docs/finance/README.md) já possui contas,
 movimentos, planejamento, metas e dívidas. A integração cloud depende de aplicar
 o SQL do Supabase e validar os fluxos no runtime. Veja [DOING.md](DOING.md) para

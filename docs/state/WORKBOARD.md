@@ -15,6 +15,26 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
+## REL-002 — Publicar Frutiger Aero 0.3.0
+
+- Status: in progress
+- Owner/lane: Codex
+- Scope: commit descritivo do tema e publicação de instaladores Windows/Android 0.3.0 com download no site.
+- Boundaries: preservar assinatura Android, dados e releases anteriores; sem mudança de contratos.
+- Evidence: build/cargo check, CI, APK assinado, assets com SHA-256 e links públicos na versão 0.3.0.
+- Next step: compilar a versão alinhada, fazer commit/push e executar `.github/workflows/release.yml`.
+- Updated: 2026-11-17
+
+## UI-AERO — Identidade Frutiger Aero
+
+- Status: complete
+- Owner/lane: Codex
+- Scope: aparência completa selecionável em um toque, com navegação, superfícies de vidro, paisagem vetorial, compras, jogos, finanças, login e ajustes responsivos.
+- Boundaries: somente apresentação; sem mudar dados, cálculos, autenticação ou comandos; preservar Feira e Cartucho.
+- Evidence: `npm run build` passou; Chrome conferiu seis rotas em 1440/768/390/320 px, persistência, reversão Cartucho/Feira, formulário financeiro, modal de item, login e movimento reduzido. Evidência em `docs/design/frutiger-aero.md`.
+- Next step: nenhuma pendência deste incremento visual; instaladores anteriores permanecem na versão 0.2.0.
+- Updated: 2026-11-17
+
 ## REL-001 — Releases Windows e Android 0.2.0
 
 - Status: complete

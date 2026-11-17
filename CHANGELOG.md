@@ -5,6 +5,13 @@ e [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-17
+
+### Added
+
+- Identidade Frutiger Aero selecionável em um toque, com paisagem vetorial,
+  vidro, navegação com ícones e layouts próprios em todas as áreas do app.
+
 ## [0.2.0] - 2026-11-17
 
 ### Added

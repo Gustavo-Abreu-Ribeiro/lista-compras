@@ -1,5 +1,8 @@
 # Identidade visual: Cartucho
 
+A identidade **Frutiger Aero** também transforma navegação e composição com um
+toque. Veja [comportamento, implementação e prova](design/frutiger-aero.md).
+
 O tema **Cartucho** é selecionado por um botão em Ajustes > Aparência. Ele usa
 as molduras edgy fornecidas pelo usuário como referência de composição. A moldura
 vertical original é usada na área de Jogos. As demais telas usam CSS leve para
