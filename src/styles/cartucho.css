@@ -247,8 +247,10 @@ html[data-theme="cartucho"] .goal-row i b { border-radius: 0; }
 html[data-theme="cartucho"] .game-item {
   position: relative;
   display: block;
+  width: 100%;
+  min-width: 0;
   aspect-ratio: 2 / 3;
-  min-height: 0;
+  min-height: 380px;
   padding: 0;
   border: 0;
   background: #0e0e10 url('/themes/cartucho/game-frame.png') center / 100% 100% no-repeat;
@@ -259,8 +261,11 @@ html[data-theme="cartucho"] .game-item:hover { transform: translateY(-4px); }
 html[data-theme="cartucho"] .game-item > a {
   position: absolute;
   inset: 9% 9% 36%;
+  width: auto;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
   padding: 12px;
   background: radial-gradient(circle at 70% 20%, #8e1510 0, #262126 45%, #141417 85%);
   border: 1px solid #ede3ce;
@@ -268,12 +273,12 @@ html[data-theme="cartucho"] .game-item > a {
   overflow: hidden;
 }
 html[data-theme="cartucho"] .game-item > a::before { content: "////"; position: absolute; top: 14px; left: 12px; color: var(--primary); font: 900 clamp(1.3rem, 3vw, 2.4rem) var(--font-data); letter-spacing: -.35em; }
-html[data-theme="cartucho"] .game-item > a > div { min-width: 0; }
+html[data-theme="cartucho"] .game-item > a > div { min-width: 0; flex: none; }
 html[data-theme="cartucho"] .game-item > a strong { color: var(--ink); font: 900 clamp(1.1rem, 2vw, 1.8rem)/.98 var(--font-display); text-transform: uppercase; overflow-wrap: anywhere; }
 html[data-theme="cartucho"] .game-item > a .muted { display: none; }
-html[data-theme="cartucho"] .game-item .check-group { position: absolute; inset: 67% 9% auto; display: flex; justify-content: space-between; gap: 3px; color: var(--ink); font: 10px var(--font-data); }
-html[data-theme="cartucho"] .game-item .check { display: inline-flex; gap: 3px; align-items: center; }
-html[data-theme="cartucho"] .game-item .check input { accent-color: var(--primary); }
+html[data-theme="cartucho"] .game-item .check-group { position: absolute; inset: 68% 10% 24%; display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 2px; color: var(--ink); }
+html[data-theme="cartucho"] .game-item .check { display: flex; min-height: 0; gap: 5px; align-items: center; color: var(--ink); font: 11px var(--font-data); }
+html[data-theme="cartucho"] .game-item .check input { margin: 0; width: 14px; height: 14px; flex-shrink: 0; accent-color: var(--primary); }
 html[data-theme="cartucho"] .game-item > .icon.danger { position: absolute; right: 8%; bottom: 2%; z-index: 1; width: 26px; height: 26px; border: 1px solid var(--primary); color: var(--primary); background: var(--bg); }
 html[data-theme="cartucho"] .game-item.playing > a { border-color: #f2a900; }
 html[data-theme="cartucho"] .game-item.finished > a { border-color: #4dffa0; }
@@ -320,7 +325,6 @@ html[data-theme="cartucho"] .theme-cartucho { border-color: var(--primary); }
   html[data-theme="cartucho"] .finance-grid,
   html[data-theme="cartucho"] .finance-grid-lower { grid-template-columns: minmax(0, 1fr); }
   html[data-theme="cartucho"] .link-list:has(.game-item) { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  html[data-theme="cartucho"] .game-item .check-group { flex-direction: column; inset: 65% 11% auto; }
   html[data-theme="cartucho"] .card,
   html[data-theme="cartucho"] .panel,
   html[data-theme="cartucho"] .sync-card { padding: 16px; }
@@ -331,12 +335,17 @@ html[data-theme="cartucho"] .theme-cartucho { border-color: var(--primary); }
 
 @media (max-width: 480px) {
   html[data-theme="cartucho"] .home-stat-emphasis > strong { font-size: clamp(1.75rem, 9vw, 2.5rem); line-height: 1; }
+  html[data-theme="cartucho"] .finance-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
   html[data-theme="cartucho"] .link-list:has(.game-item) { grid-template-columns: minmax(0, 1fr); }
   html[data-theme="cartucho"] .game-item {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
     aspect-ratio: auto;
+    min-height: 0;
     padding: 10px;
     border: 1px solid var(--border);
     background: #17171a;
@@ -345,6 +354,7 @@ html[data-theme="cartucho"] .theme-cartucho { border-color: var(--primary); }
   html[data-theme="cartucho"] .game-item > a {
     position: relative;
     inset: auto;
+    width: 100%;
     grid-column: 1 / -1;
     min-height: 96px;
     padding: 24px 10px 10px;
@@ -368,7 +378,6 @@ html[data-theme="cartucho"] .theme-cartucho { border-color: var(--primary); }
     width: 36px;
     height: 36px;
   }
-  html[data-theme="cartucho"] .finance-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 360px) {

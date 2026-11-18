@@ -5,6 +5,29 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 ## Atividade Atual: CLOUD-001 / REVIEW-001 (pendências pós-release)
 
+**REL-004 em curso:** versão 0.5.0 preparada para Windows/Android, com gestão
+dedicada de dívidas e correções visuais. A revisão ganhou incrementos em
+REV-12/24; a prova visual da rota e a publicação dos instaladores estão em
+andamento. Próximo passo: conferir o QA, enviar o commit e executar/validar o
+workflow `release.yml`, depois verificar os downloads públicos e o site.
+
+**FIN-UX-001 atualizada em 2026-11-18:** Planejamento agora mantém apenas
+resumo/cadastro rápido de dívidas; gestão completa fica em `/finance/debts`,
+com cards recolhidos, total, restante derivado das parcelas, checkboxes mensais
+e previsão de seis meses. Dívidas antigas podem receber um plano; a migration
+pausa a recorrência antiga e preserva fatos realizados. Build passou. Próxima
+ação exata: aplicar `202611170002_financial_debt_installment_plans.sql` e
+`202611180001_attach_legacy_debt_plans.sql` no Supabase e validar Mercado Pago.
+
+**FIX-UI-001 concluída em 2026-11-18:** corrigidos contraste dos ícones Aero,
+grade do resumo financeiro, controles/limites do card Cartucho e listas mobile
+em coluna (categorias e jogos). Consulta mensal deixa de exigir `debt_id`, sem
+bloquear Início/Finanças no schema inicial. Build, três testes financeiros e
+40 cenários Edge com fixtures passaram. Provas em
+`docs/activity-log/2026-11-18/reported-ui-fixes.md`. Alterações locais, sem nova
+release; planos de dívida ainda dependem da migração remota. O próximo passo
+de REV-25 e as pendências CLOUD-001/FIN-UX-001 abaixo permanecem.
+
 QA Edge passou para 10 aparências × 6 rotas × 4 larguras (240 cenários), com
 fluxos de compras, jogos, dívida e login desconectado. A matriz revelou e
 corrigiu a navegação Vaporwave 95 sobreposta pelo painel; release 0.4.0 e site

@@ -5,6 +5,21 @@ e [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-18
+
+### Added
+
+- Gestão dedicada de dívidas com parcelas mensais, valor restante calculado e
+  previsão consolidada; dívidas antigas podem receber um plano finito após
+  aplicar as migrations indicadas nas notas da versão.
+
+### Fixed
+
+- Ícones Aero mais legíveis, resumo financeiro e cards Cartucho corrigidos;
+  listas de categorias e jogos em coluna no celular.
+- A carga geral de Finanças funciona enquanto a atualização de planos de dívida
+  ainda não foi aplicada ao Supabase.
+
 ## [0.4.0] - 2026-11-17
 
 ### Added

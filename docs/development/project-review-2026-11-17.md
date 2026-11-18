@@ -67,6 +67,10 @@ conta Supabase autenticada ainda depende da validação de runtime de CLOUD-001.
   vazias indistinguíveis de ausência de dados; valores indisponíveis usam traço,
   preços recentes permitem nova tentativa e falhas de parcelas não exibem zero.
   A prova por falha simulada no runtime ainda está pendente.
+- REV-12, incremento de 2026-11-18: a nova rota de dívidas também mostra traço
+  nos totais de parcelas quando a migration falta; dívidas antigas sem plano
+  exibem “A definir” no lugar de zero. Build aprovado. Ainda falta a falha
+  simulada no Resumo para encerrar o achado.
 - REV-14: modal de Compras recebe foco inicial, contém Tab/Shift+Tab, fecha com
   Escape e restaura foco ao sair; botão de remoção de categoria ganhou nome
   acessível. `npm run build` passou; teste manual de teclado e leitor de tela
@@ -93,6 +97,16 @@ conta Supabase autenticada ainda depende da validação de runtime de CLOUD-001.
   do app autenticado, demais aparências e teste em dispositivo real. Modais agora
   ficam acima da navegação fixa e rolam internamente em telas baixas; falta
   conferir com teclado virtual aberto.
+- REV-24, incremento de 2026-11-18: a gestão completa de dívidas saiu do
+  layout financeiro para `FinanceDebtsLayout.tsx`, com rota própria. O card
+  antigo e seu ajuste manual de saldo foram removidos, deixando só resumo e
+  cadastro rápido no Planejamento. Build aprovado; demais formulários do
+  layout ainda concentram responsabilidades, portanto REV-24 segue aberto.
+- REV-25, incremento de 2026-11-18: a rota nova de dívidas passou sem overflow
+  em Feira, Aero, Cartucho e Vaporwave nas larguras 390, 600 e 760 px, com cards
+  inicialmente recolhidos e checkboxes visíveis ao expandir. O QA isolado
+  completo aprovou 52 cenários. Dispositivo real e teclado virtual continuam
+  pendentes.
 
 ## Diagnóstico
 

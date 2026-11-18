@@ -1,11 +1,32 @@
 ﻿# Estado atual da Lista de Compras
 
-> Última verificação documental: 2026-11-17
+> Última verificação documental: 2026-11-18
 >
 > Este é um resumo para retomada. Código, testes e comandos reproduzíveis são a
 > prova do comportamento da revisão atual.
 
 ## Implementado
+
+- Release 0.5.0 preparada no código local: versões npm/Rust/Tauri sincronizadas,
+  notas de release e descrição do site atualizadas. Publicação e verificação
+  dos downloads ainda estão em andamento em REL-004.
+
+- FIN-UX-001 recebeu uma rota dedicada `/finance/debts`. O Planejamento mantém
+  resumo e cadastro rápido; a rota mostra cada dívida recolhida, total original,
+  total do plano, restante e checkboxes mensais. O restante vem das parcelas
+  pendentes e cada baixa registra o gasto. Dívidas antigas sem parcelas recebem
+  um formulário de conversão. Migration aditiva implementada, ainda sem
+  aplicação remota. `npm run build` passou em 2026-11-18.
+
+- FIX-UI-001: ícones Aero brancos com sombra, resumo financeiro com espaços
+  transparentes entre blocos e controles Cartucho contidos na arte. Categorias
+  de Compras no Aero permanecem em coluna; listas de jogos Aero/Cartucho/Vaporwave
+  usam uma coluna até 760 px. A consulta mensal não exige `debt_id`, permitindo
+  carregar Início/Finanças no schema inicial; planos de dívida continuam
+  indisponíveis sem a migração. Build, três testes financeiros e 40 cenários Edge
+  com fixtures isoladas passaram. Evidência em
+  `docs/activity-log/2026-11-18/reported-ui-fixes.md`; sem nova release ou
+  aplicação de migração remota.
 
 - REL-003 concluída: release 0.4.0 publicada a partir do commit
   `490071b4de0c09c51478c02cd098963cdb708c6b`, tag anotada `v0.4.0`, CI
@@ -55,12 +76,10 @@
 - Resumo não apresenta falhas parciais de itens/preços como listas vazias ou
   parcelas indisponíveis como zero; adicionada tentativa de recarga dos preços.
   Build passou; erro simulado no runtime ainda pendente em REV-12.
-- FIN-UX-001 está em curso: painel de planejamento mostra saldo das dívidas,
-  restante do plano e saídas por seis meses; dívida expande para parcelas e
-  confirmação. ADR-005 e migration definem parcelas escolhidas pelo usuário,
-  total mínimo igual ao saldo e saldo do credor manual. Build, teste financeiro
-  e cargo check passaram. Migration/RPC ainda não aplicados/verificados no
-  Supabase; cadastro fica desabilitado até isso.
+- FIN-UX-001 está em curso: a interface e as migrations do plano finito estão
+  implementadas, mas as RPCs ainda não foram aplicadas/verificadas no Supabase.
+  Até isso, cadastro e conversão ficam desabilitados para não criar dados sem
+  parcelas vinculadas.
 
 - Frutiger Aero é uma das dez aparências, selecionável em um toque em Ajustes. Altera
   navegação, composição, superfícies e controles em todas as áreas, com paisagem

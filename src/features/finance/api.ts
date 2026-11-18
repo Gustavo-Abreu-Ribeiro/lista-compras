@@ -116,7 +116,9 @@ export async function createFinancialInstallment(description: string, totalCents
 }
 export async function listFinancialInstallments(month: string): Promise<FinancialInstallment[]> {
   const { start, end } = monthBounds(month)
-  return read(client().from("app_financial_installments").select("id,description,amount_cents,due_on,state,debt_id")
+  // A consulta mensal também atende contas que ainda usam o schema inicial.
+  // O vínculo com dívidas é consultado separadamente pelo planejamento.
+  return read(client().from("app_financial_installments").select("id,description,amount_cents,due_on,state")
     .gte("due_on", start).lt("due_on", end).order("due_on"))
 }
 export const listFinancialDebtInstallments = () => read<FinancialDebtInstallment[]>(
@@ -129,6 +131,12 @@ export async function createFinancialDebtPlan(name: string, balanceCents: number
     p_name: name.trim(), p_balance_cents: balanceCents,
     p_installment_count: installmentCount, p_installment_cents: installmentCents,
     p_first_due_on: firstDueOn,
+  }))
+}
+export async function setFinancialDebtPlan(debtId: number, installmentCount: number, installmentCents: number, firstDueOn: string): Promise<void> {
+  await read(client().rpc("app_set_financial_debt_plan", {
+    p_debt_id: debtId, p_installment_count: installmentCount,
+    p_installment_cents: installmentCents, p_first_due_on: firstDueOn,
   }))
 }
 export async function markFinancialInstallmentPaid(id: number): Promise<void> {
@@ -212,7 +220,4 @@ export async function setFinancialRecurrenceActive(id: number, active: boolean):
 export const listFinancialDebts = () => read<FinancialDebt[]>(client().from("app_financial_debts").select("id,name,balance_cents,monthly_payment_cents,due_day").order("name"))
 export async function createFinancialDebt(name: string, balanceCents: number, monthlyPaymentCents: number, dueDay: number | null, startMonth: string): Promise<void> {
   await read(client().rpc("app_create_financial_debt", { p_name: name.trim(), p_balance_cents: balanceCents, p_monthly_payment_cents: monthlyPaymentCents, p_due_day: dueDay, p_start_month: startMonth }))
-}
-export async function updateFinancialDebtBalance(id: number, balanceCents: number): Promise<void> {
-  await read(client().from("app_financial_debts").update({ balance_cents: balanceCents }).eq("id", id))
 }

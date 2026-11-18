@@ -1,5 +1,5 @@
 // Isolated read-only fixtures shared by screenshot and theme QA scripts.
-export async function createDemoContext(browser, { signedIn = true } = {}) {
+export async function createDemoContext(browser, { signedIn = true, legacyFinanceSchema = false } = {}) {
 const context = await browser.newContext({
   viewport: { width: 1440, height: 940 },
   deviceScaleFactor: 1,
@@ -128,12 +128,17 @@ await context.route("**/src/services/supabase.ts*", (route) =>
     export const supabase = {
       auth: { getSession: async () => ({ data: { session: ${signedIn ? "{ user: { email: 'demo@example.com' } }" : "null"} } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
       from(name) {
-        let rows = tables[name] || []; const q = {
-          select() { return q }, order() { return q }, gte() { return q }, gt() { return q }, lt() { return q }, lte() { return q }, or() { return q }, limit() { return q },
+        let rows = tables[name] || []; let error = null; const q = {
+          select(columns = '') {
+            if (${legacyFinanceSchema} && name === 'app_financial_installments' && columns.split(',').includes('debt_id')) {
+              error = { message: 'column app_financial_installments.debt_id does not exist' };
+            }
+            return q;
+          }, order() { return q }, gte() { return q }, gt() { return q }, lt() { return q }, lte() { return q }, or() { return q }, limit() { return q },
           eq(key, value) { rows = rows.filter(row => row[key] === value); return q },
           not(key, operator, value) { rows = rows.filter(row => operator === 'is' && value === null ? row[key] !== null : true); return q },
           in() { return q }, upsert() { throw Error('Capture is read-only') }, insert() { throw Error('Capture is read-only') }, delete() { throw Error('Capture is read-only') },
-          then(resolve) { return Promise.resolve({ data: rows, error: null }).then(resolve) }
+          then(resolve) { return Promise.resolve({ data: error ? null : rows, error }).then(resolve) }
         }; return q;
       }
     };`,

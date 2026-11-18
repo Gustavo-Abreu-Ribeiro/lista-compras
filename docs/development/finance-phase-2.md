@@ -20,7 +20,8 @@ Orçamentos, recorrências, dívidas básicas, gráfico mensal e navegação mob
 ## Critérios de aceite
 
 1. O usuário pode cadastrar renda e despesa recorrentes, pausar regras e confirmar ocorrências sem duplicação.
-2. Dívidas podem ser cadastradas e o saldo devedor atualizado manualmente; parcela mensal informada gera compromisso recorrente.
+2. Dívidas podem ser cadastradas com plano finito; o restante é calculado pelas
+   parcelas pendentes e cada checkbox pago registra o gasto correspondente.
 3. A tela mobile separa resumo, planejamento e lançamentos e mostra tendência mensal.
 4. Orçamentos por categoria podem ser salvos por mês e exibem gasto/limite restante.
 5. Prova automatizada específica de recorrências e migração continua como próximo passo.

@@ -34,13 +34,17 @@ projeções, análises, dívidas, notificações e integração com desejos.
 guarda regras mensais; ocorrências são materializadas como transações previstas
 com chave única por regra e mês. `financial_installments` representa
 compromissos mensais futuros, inclusive pagamentos vinculados a uma dívida.
-`financial_debts` registra o saldo do credor atualizado manualmente; o plano de
-parcelas acompanha total programado e pagamentos restantes sem alterar esse
-saldo automaticamente. Metas não movem dinheiro sozinhas: a contribuição só ocorre
+`financial_debts` registra o valor original informado. O plano de parcelas
+acompanha o total programado e o restante, calculado pelas parcelas pendentes.
+Metas não movem dinheiro sozinhas: a contribuição só ocorre
 mediante lançamento confirmado pelo usuário.
 
 ## Regras de evolução
 
+- A listagem mensal de parcelas usa somente colunas do schema inicial. O vínculo
+  `debt_id` é lido separadamente pelo planejamento; a migração de planos pendente
+  não deve impedir a carga de Início ou do restante de Finanças. Sem essa migração,
+  o cadastro de planos permanece indisponível, sem fallback de persistência.
 - Valores monetários persistidos são inteiros em centavos.
 - Datas são ISO `YYYY-MM-DD`; relatórios usam o mês `YYYY-MM`.
 - Alterações de salário, categoria ou regra futura não podem reescrever fatos

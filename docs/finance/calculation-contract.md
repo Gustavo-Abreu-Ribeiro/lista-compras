@@ -65,21 +65,18 @@ nesse caso somente o compromisso explícito entra no cálculo.
 
 ## Dívidas acompanhadas (FIN-002)
 
-O saldo da dívida é um valor de acompanhamento inserido/atualizado pelo usuário;
-ele não é somado ao saldo bancário nem abatido automaticamente após um gasto.
-Se o cadastro incluir pagamento mensal, o mesmo salvamento cria uma recorrência
-de gasto com a data de vencimento. A confirmação desse gasto não altera o saldo
-da dívida; o usuário atualiza o saldo devedor manualmente para refletir o
-extrato do credor. Assim, o pagamento mensal compromete a projeção uma única
-vez e não há amortização presumida.
+O valor da dívida é o total original informado e não é somado ao saldo bancário.
+O restante é a soma das parcelas pendentes vinculadas à dívida. Cada parcela
+entra no compromisso do respectivo mês uma única vez; confirmar o checkbox
+registra o gasto e retira essa parcela do restante do plano.
 
 ## Parcelas
 
 Planos de dívida também são compromissos mensais: quantidade e valor são
 informados pelo usuário, e o total do plano precisa cobrir pelo menos o saldo
 atual registrado. O total do plano e o restante das parcelas pendentes são
-valores separados do saldo atualizado manualmente pelo credor. A confirmação
-reduz o restante do plano e registra um gasto; não recalcula o saldo do credor.
+valores separados do valor original cadastrado. A confirmação reduz o restante
+do plano e registra um gasto.
 Ver [ADR-005](../adr/ADR-005-financial-debt-plans.md).
 
 Uma compra de `R$ 1.200,00` em 12 parcelas cria doze obrigações mensais. Cada

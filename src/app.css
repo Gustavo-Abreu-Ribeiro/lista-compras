@@ -1146,6 +1146,28 @@ details summary { cursor: pointer; font-weight: 600; margin-top: 4px; }
 .debt-plan-detail { display: grid; gap: 12px; padding: 12px 4px; }
 .debt-plan-detail > p { margin: 0; color: var(--muted); }
 .debt-plan-detail .finance-list { max-height: 320px; overflow: auto; }
+.finance-debt-summary { grid-column: 1 / -1; }
+.finance-debt-summary-actions { margin-top: 12px; }
+.debt-page .finance-shell { max-width: 1040px; }
+.debt-header { align-items: center; }
+.debt-list { display: grid; gap: 12px; }
+.debt-row.card { padding: 0; overflow: hidden; }
+.debt-row.card > summary { border: 0; border-radius: 0; padding: 16px 18px; }
+.debt-summary-values { display: grid; justify-items: end; }
+.debt-summary-values small { color: var(--muted); font-size: .75rem; }
+.debt-totals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0; }
+.debt-totals div { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); }
+.debt-totals dt { color: var(--muted); font-size: .76rem; }
+.debt-totals dd { margin: 5px 0 0; font-weight: 700; }
+.debt-month-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.debt-month-grid li { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); }
+.debt-month-check { display: flex; align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
+.debt-month-check input { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--primary); }
+.debt-month-check strong,.debt-month-check small { display: block; }
+.debt-month-check small { margin-top: 2px; color: var(--muted); text-transform: capitalize; }
+.debt-plan-preview { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; padding: 12px; border-radius: 10px; background: color-mix(in srgb,var(--primary) 8%,var(--bg-2)); }
+.debt-plan-preview span { display: grid; gap: 2px; }
+.debt-legacy-plan { padding-top: 8px; border-top: 1px solid var(--border); }
 
 .home-shell {
   width: min(1180px, 100%);
@@ -1218,6 +1240,11 @@ details summary { cursor: pointer; font-weight: 600; margin-top: 4px; }
   .category-create { align-items: stretch; }
   .category-create .btn { width: 100%; }
   .debt-row { flex-direction: column; }
+  .debt-header { align-items: stretch; }
+  .debt-totals { grid-template-columns: 1fr; }
+  .debt-month-grid { grid-template-columns: 1fr; }
+  .debt-row.card > summary { align-items: center; }
+  .debt-summary-values { min-width: 100px; }
   .debt-balance { width: 100%; justify-items: stretch; }
   .finance-quick-card .form-stack { gap: 10px; }
   .finance-quick-card .field { gap: 5px; font-size: .82rem; }

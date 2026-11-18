@@ -4,6 +4,7 @@ import GameLayout from "../layout/GameLayout"
 import LoginLayout from "../layout/LoginLayout"
 import SettingsLayout from "../layout/SettingsLayout"
 import FinanceLayout from "../layout/FinanceLayout"
+import FinanceDebtsLayout from "../layout/FinanceDebtsLayout"
 import HomeLayout from "../layout/HomeLayout"
 import RequireAuth from "../layout/RequireAuth"
 
@@ -31,5 +32,9 @@ export const router = createBrowserRouter([
   {
     path: "/finance",
     element: <RequireAuth><FinanceLayout /></RequireAuth>,
+  },
+  {
+    path: "/finance/debts",
+    element: <RequireAuth><FinanceDebtsLayout /></RequireAuth>,
   },
 ])

@@ -15,15 +15,40 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
+## REL-004 — Publicar 0.5.0 com gestão de dívidas
+
+- Status: in progress
+- Owner/lane: Codex
+- Scope: publicar instaladores Windows/Android 0.5.0, atualizar a descrição do site e conferir downloads públicos.
+- Boundaries: preservar assinatura Android, dados existentes e releases anteriores; migrations remotas seguem separadas.
+- Evidence: versões sincronizadas, notas em `docs/releases/0.5.0.md`; build frontend, teste financeiro, cargo check e check-version passaram localmente. QA Edge com fixtures aprovou 52 cenários, incluindo a rota de dívidas em quatro temas e três larguras mobile. CI/release ainda pendentes.
+- Next step: concluir QA, enviar commit, executar workflow de release e conferir instaladores, checksums e site público.
+- Updated: 2026-11-18
+
+## FIX-UI-001 — Capturas Aero/Cartucho e carga financeira
+
+- Status: complete
+- Owner/lane: Codex
+- Scope: corrigir contraste dos ícones Aero, grade do resumo financeiro e controles no cartucho; consulta mensal independente da coluna opcional de dívida e listas mobile em coluna.
+- Boundaries: sem migração remota ou alteração de cálculos; preservar dados e edição existente em Cargo.toml.
+- Evidence: build e três testes financeiros passaram; `scripts/site/verify-reported-ui.mjs` aprovou 40 cenários Edge com fixtures isoladas, incluindo sete larguras, listas em coluna em quatro aparências e carga de Início/Finanças com/sem `debt_id`. Capturas em `dist/reported-ui-qa/`.
+- Next step: nenhuma pendência deste incremento; prova autenticada e migração remota continuam em CLOUD-001/FIN-UX-001 e aparelho físico em REV-25.
+- Updated: 2026-11-18
+
 ## FIN-UX-001 — Painel de planejamento financeiro
 
 - Status: in progress
 - Owner/lane: Codex
-- Scope: reorganizar Planejamento em um dashboard, mover cadastros para diálogos, agrupar dívidas em listas expansíveis e apresentar projeções mês a mês.
-- Boundaries: manter a arquitetura de adapters e a semântica financeira existente; não inferir quitação/amortização nem mudar esquema sem regra explícita.
-- Evidence: visão/aceite em `docs/development/finance-planning-experience-2026-11-17.md`; ADR-005 define total de parcelas >= saldo e saldo do credor manual. Migração, RPC, campos de plano, lista expansível e quadro de saídas por seis meses implementados; build/teste financeiro/cargo check passaram. Migração remota ainda não aplicada.
-- Next step: aplicar e validar a migração/RPC de plano parcelado no Supabase; depois trocar disclosures de cadastro por diálogos e validar o painel em celular em `src/app/layout/FinanceLayout.tsx`.
-- Updated: 2026-11-17
+- Scope: manter Planejamento compacto e oferecer gestão dedicada de dívidas com
+  cadastro, total, restante, parcelas mensais e previsão agregada.
+- Boundaries: manter adapters/Supabase, preservar fatos pagos e calcular o
+  restante somente pelas parcelas pendentes.
+- Evidence: ADR-005 atualizado; `/finance/debts` implementa cards recolhidos,
+  checkboxes e conversão de dívidas antigas. Migration 202611180001 pausa a
+  recorrência antiga e cria o plano atomicamente. `npm run build` passou.
+- Next step: aplicar migrations 202611170002 e 202611180001 no Supabase e validar
+  cadastro, conversão de Mercado Pago, pagamento e projeção com sessão real.
+- Updated: 2026-11-18
 
 ## REVIEW-001 — Revisão de confiabilidade e experiência
 
@@ -31,7 +56,7 @@ roadmap ou registro de atividades.
 - Owner/lane: Codex
 - Scope: acompanhar e corrigir os achados da revisão, incluindo pente fino mobile, riscando cada item após prova.
 - Boundaries: preservar a propriedade e as pendências de CLOUD-001; sem remover SQLite ou alterar contratos sem decisão.
-  - Evidence: REV-01/08/09/13/19/21/22 corrigidos; `npm run test:finance`, build e `cargo check --locked` passaram. CI geral adicionado em `.github/workflows/ci.yml`. QA Edge final: 10 aparências × 6 rotas × 4 larguras (240 cenários), incluindo seleção de item, cards de jogos, expansão de dívida, navegação visível, login desconectado; sem overflow nem erros. A matriz revelou e corrigiu a navegação Vaporwave 95 sobreposta no mobile. QA do site passou em quatro larguras e 16 combinações; REV-12 (mensagens de falha do Resumo) e REV-14 (teclado/acessibilidade dos modais) implementados, ambos aguardam prova runtime/manual; REV-04/05/06/25 parciais.
+  - Evidence: REV-01/08/09/13/19/21/22 corrigidos; `npm run test:finance`, build e `cargo check --locked` passaram. CI geral adicionado em `.github/workflows/ci.yml`. QA Edge final: 10 aparências × 6 rotas × 4 larguras (240 cenários), incluindo seleção de item, cards de jogos, expansão de dívida, navegação visível, login desconectado; sem overflow nem erros. A matriz revelou e corrigiu a navegação Vaporwave 95 sobreposta no mobile. QA do site passou em quatro larguras e 16 combinações; REV-12 e REV-24 receberam incrementos adicionais em 2026-11-18; REV-25 ganhou 12 cenários para a rota de dívidas em mobile. REV-14 e provas runtime/autenticadas continuam pendentes.
   - Next step: simular falha parcial no Resumo para REV-12; provar REV-14 por teclado/leitor de tela; REV-04 com rede lenta, unicidade e clique duplo em Compras; REV-05 com respostas A atrasadas após B; REV-06 no app autenticado após criar/excluir/confirmar; REV-25 em aparelho físico e com teclado virtual.
 - Updated: 2026-11-17
 
