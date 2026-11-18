@@ -17,12 +17,12 @@ roadmap ou registro de atividades.
 
 ## REL-004 — Publicar 0.5.0 com gestão de dívidas
 
-- Status: in progress
+- Status: complete
 - Owner/lane: Codex
 - Scope: publicar instaladores Windows/Android 0.5.0, atualizar a descrição do site e conferir downloads públicos.
 - Boundaries: preservar assinatura Android, dados existentes e releases anteriores; migrations remotas seguem separadas.
-- Evidence: versões sincronizadas, notas em `docs/releases/0.5.0.md`; build frontend, teste financeiro, cargo check e check-version passaram localmente. QA Edge com fixtures aprovou 52 cenários, incluindo a rota de dívidas em quatro temas e três larguras mobile. CI/release ainda pendentes.
-- Next step: concluir QA, enviar commit, executar workflow de release e conferir instaladores, checksums e site público.
+- Evidence: commit `4913643`, CI 44299590153, Pages 44299590134 e release 44299608785 passaram. Downloads públicos 0.5.0 conferidos por SHA-256; site ao vivo aponta para os dois assets. QA Edge isolado aprovou 52 cenários. Detalhes em `docs/releases/0.5.0-verification.md`.
+- Next step: nenhuma pendência desta publicação; migrations/validação autenticada continuam em FIN-UX-001 e CLOUD-001.
 - Updated: 2026-11-18
 
 ## FIX-UI-001 — Capturas Aero/Cartucho e carga financeira

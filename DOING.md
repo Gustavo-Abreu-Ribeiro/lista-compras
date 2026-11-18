@@ -5,11 +5,14 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 ## Atividade Atual: CLOUD-001 / REVIEW-001 (pendências pós-release)
 
-**REL-004 em curso:** versão 0.5.0 preparada para Windows/Android, com gestão
-dedicada de dívidas e correções visuais. A revisão ganhou incrementos em
-REV-12/24; a prova visual da rota e a publicação dos instaladores estão em
-andamento. Próximo passo: conferir o QA, enviar o commit e executar/validar o
-workflow `release.yml`, depois verificar os downloads públicos e o site.
+**REL-004 concluída em 2026-11-18:** 0.5.0 Windows/Android publicada a partir
+do commit `4913643`; CI 44299590153, Pages 44299590134 e release 44299608785
+passaram. Downloads e botões públicos conferidos. REV-12/24 receberam
+incrementos, REV-25 ganhou QA da rota de dívidas, mas seguem abertos onde a
+prova exige dados autenticados ou dispositivo real. Evidência em
+`docs/releases/0.5.0-verification.md`. Próximo passo exato de FIN-UX-001:
+aplicar migrations 202611170002 e 202611180001 no projeto Supabase, converter
+uma dívida antiga e verificar pagamento e previsão com sessão real.
 
 **FIN-UX-001 atualizada em 2026-11-18:** Planejamento agora mantém apenas
 resumo/cadastro rápido de dívidas; gestão completa fica em `/finance/debts`,

@@ -7,9 +7,11 @@
 
 ## Implementado
 
-- Release 0.5.0 preparada no código local: versões npm/Rust/Tauri sincronizadas,
-  notas de release e descrição do site atualizadas. Publicação e verificação
-  dos downloads ainda estão em andamento em REL-004.
+- Release 0.5.0 publicada: commit `4913643`, CI 44299590153, Pages
+  44299590134 e workflow Windows/Android/publicação 44299608785 passaram.
+  Downloads públicos e botões do site conferidos; hashes em
+  `docs/releases/0.5.0-verification.md`. Migrations remotas e prova
+  autenticada permanecem pendentes em FIN-UX-001/CLOUD-001.
 
 - FIN-UX-001 recebeu uma rota dedicada `/finance/debts`. O Planejamento mantém
   resumo e cadastro rápido; a rota mostra cada dívida recolhida, total original,
