@@ -57,12 +57,12 @@ roadmap ou registro de atividades.
 
 ## REL-003 — Release 0.4.0 com Vaporwave 95 e QA mobile
 
-  - Status: in progress
+  - Status: complete
   - Owner/lane: Codex
   - Scope: commit/push das correções revisadas, publicar instaladores Windows/Android e atualizar previews/downloads do site.
   - Boundaries: preservar assinatura Android, releases/dados anteriores; migration de dívida não aplicada ao Supabase permanece explicitamente desabilitada.
-  - Evidence: build frontend, três testes financeiros, `cargo check --locked`, check de versões e QA Edge (240 cenários do app, quatro larguras/16 combinações no site) passaram. Release notes 0.4.0 e site preparados; downloads do site consultam releases públicas.
-  - Next step: enviar commit, disparar o workflow `release.yml`, aguardar publicação, verificar checksums/assets e confirmar deployment do Pages.
+  - Evidence: commit `490071b4de0c09c51478c02cd098963cdb708c6b` enviado; CI 44220414797, builds/publicação Windows+Android 44220473964 e Pages 44220414743 passaram. Tag anotada `v0.4.0`; SHA-256 dos downloads públicos verificados; certificado APK igual ao 0.3.0 e `versionCode=4000`. Site ao vivo aponta para APK/EXE 0.4.0. Capturas de Vaporwave estão na galeria. Evidência em `docs/releases/0.4.0-verification.md`.
+  - Next step: nenhuma pendência desta publicação. REV-25 ainda requer prova em aparelho físico/teclado virtual; migration cloud financeira também aguarda aplicação/validação.
   - Updated: 2026-11-17
 
 ## UI-AERO — Identidade Frutiger Aero

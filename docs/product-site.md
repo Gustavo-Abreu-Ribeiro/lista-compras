@@ -42,11 +42,11 @@ QA local e na URL pública passou nas quatro larguras. Publicação do commit
 `0602d2e` pelo Pages 44145187004 concluiu com sucesso. Downloads reais Windows
 e Android 0.3.0 também foram conferidos no navegador, sem mock da API.
 
-Atualização preparada para a release 0.4.0: galeria com Vaporwave 95 e novas
-capturas do app em 390 px; QA mobile final cobriu dez aparências, seis rotas e
-quatro larguras. Os links de download buscam a release estável mais recente pela
-API pública do GitHub, então os novos instaladores aparecem após a publicação,
-sem URL hardcoded.
+Release 0.4.0 publicada: galeria com Vaporwave 95 e capturas atuais do app em
+390 px. QA mobile final cobriu dez aparências, seis rotas e quatro larguras.
+Na página pública, Edge confirmou os links 0.4.0, sem overflow a 390 px. Os links
+de download buscam a release estável pela API pública do GitHub. Evidência em
+`docs/releases/0.4.0-verification.md`.
 
 Proposta de nome/símbolo **Caderno**, direção escolhida pelo usuário, em
 `docs/brand/`. Mantida fora da identidade publicada enquanto é revisada.

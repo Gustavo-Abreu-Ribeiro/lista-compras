@@ -7,10 +7,12 @@
 
 ## Implementado
 
-- REL-003 está preparada em 0.4.0: versões sincronizadas, changelog/notas e
-  previews Vaporwave 95 atualizados. QA Edge do app passou em 240 cenários e
-  QA do site passou em quatro larguras. Commit, push, Pages e instaladores ainda
-  aguardam esta unidade de publicação.
+- REL-003 concluída: release 0.4.0 publicada a partir do commit
+  `490071b4de0c09c51478c02cd098963cdb708c6b`, tag anotada `v0.4.0`, CI
+  44220414797, release Windows/Android 44220473964 e Pages 44220414743 passaram.
+  Downloads públicos, checksums, links do site e assinatura Android compatível
+  com 0.3.0 foram conferidos; APK informa versionCode 4000. Provas em
+  `docs/releases/0.4.0-verification.md`.
 
 - REV-21: criado `.github/workflows/ci.yml`, acionado em pull requests e pushes
   para `main`, com teste financeiro, build frontend e `cargo check --locked`.
