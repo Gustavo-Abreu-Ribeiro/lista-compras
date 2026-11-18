@@ -86,16 +86,6 @@ const tables = {
       status: "posted",
     },
   ],
-  app_financial_installments: [
-    {
-      id: 1,
-      description: "Escrivaninha · 2 de 4",
-      amount_cents: 15000,
-      due_on: `${month}-25`,
-      state: "pending",
-      category_id: 1,
-    },
-  ],
   app_financial_goals: [
     {
       id: 1,
@@ -106,6 +96,16 @@ const tables = {
       priority: 1,
       contribution_min_cents: 20000,
     },
+  ],
+  app_financial_debts: [
+    { id: 1, name: "Notebook", balance_cents: 200000, monthly_payment_cents: 40000, due_day: 28 },
+    { id: 2, name: "Curso", balance_cents: 90000, monthly_payment_cents: 30000, due_day: 12 },
+  ],
+  app_financial_installments: [
+    { id: 1, description: "Escrivaninha · 2 de 4", amount_cents: 15000, due_on: `${month}-25`, state: "pending", category_id: 1, debt_id: null },
+    { id: 2, description: "Notebook · 2 de 5", amount_cents: 40000, due_on: `${month}-28`, state: "pending", category_id: 1, debt_id: 1 },
+    { id: 3, description: "Notebook · 1 de 5", amount_cents: 40000, due_on: `${month}-28`, state: "paid", category_id: 1, debt_id: 1 },
+    { id: 4, description: "Curso · 1 de 3", amount_cents: 30000, due_on: `${month}-12`, state: "pending", category_id: 1, debt_id: 2 },
   ],
   app_financial_budgets: [
     { id: 1, category_id: 1, month, limit_cents: 120000 },
@@ -131,6 +131,7 @@ await context.route("**/src/services/supabase.ts*", (route) =>
         let rows = tables[name] || []; const q = {
           select() { return q }, order() { return q }, gte() { return q }, gt() { return q }, lt() { return q }, lte() { return q }, or() { return q }, limit() { return q },
           eq(key, value) { rows = rows.filter(row => row[key] === value); return q },
+          not(key, operator, value) { rows = rows.filter(row => operator === 'is' && value === null ? row[key] !== null : true); return q },
           in() { return q }, upsert() { throw Error('Capture is read-only') }, insert() { throw Error('Capture is read-only') }, delete() { throw Error('Capture is read-only') },
           then(resolve) { return Promise.resolve({ data: rows, error: null }).then(resolve) }
         }; return q;

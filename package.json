@@ -1,11 +1,12 @@
 {
   "name": "lista-compras",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test:finance": "node src/features/finance/installmentSchedule.test.mjs",
     "preview": "vite preview",
     "site:dev": "vite website --host 127.0.0.1 --port 4173",
     "tauri": "tauri"

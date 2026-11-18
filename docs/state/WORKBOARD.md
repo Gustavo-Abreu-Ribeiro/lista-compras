@@ -15,6 +15,26 @@ roadmap ou registro de atividades.
 
 ## Trabalho ativo
 
+## FIN-UX-001 — Painel de planejamento financeiro
+
+- Status: in progress
+- Owner/lane: Codex
+- Scope: reorganizar Planejamento em um dashboard, mover cadastros para diálogos, agrupar dívidas em listas expansíveis e apresentar projeções mês a mês.
+- Boundaries: manter a arquitetura de adapters e a semântica financeira existente; não inferir quitação/amortização nem mudar esquema sem regra explícita.
+- Evidence: visão/aceite em `docs/development/finance-planning-experience-2026-11-17.md`; ADR-005 define total de parcelas >= saldo e saldo do credor manual. Migração, RPC, campos de plano, lista expansível e quadro de saídas por seis meses implementados; build/teste financeiro/cargo check passaram. Migração remota ainda não aplicada.
+- Next step: aplicar e validar a migração/RPC de plano parcelado no Supabase; depois trocar disclosures de cadastro por diálogos e validar o painel em celular em `src/app/layout/FinanceLayout.tsx`.
+- Updated: 2026-11-17
+
+## REVIEW-001 — Revisão de confiabilidade e experiência
+
+- Status: in progress
+- Owner/lane: Codex
+- Scope: acompanhar e corrigir os achados da revisão, incluindo pente fino mobile, riscando cada item após prova.
+- Boundaries: preservar a propriedade e as pendências de CLOUD-001; sem remover SQLite ou alterar contratos sem decisão.
+  - Evidence: REV-01/08/09/13/19/21/22 corrigidos; `npm run test:finance`, build e `cargo check --locked` passaram. CI geral adicionado em `.github/workflows/ci.yml`. QA Edge final: 10 aparências × 6 rotas × 4 larguras (240 cenários), incluindo seleção de item, cards de jogos, expansão de dívida, navegação visível, login desconectado; sem overflow nem erros. A matriz revelou e corrigiu a navegação Vaporwave 95 sobreposta no mobile. QA do site passou em quatro larguras e 16 combinações; REV-12 (mensagens de falha do Resumo) e REV-14 (teclado/acessibilidade dos modais) implementados, ambos aguardam prova runtime/manual; REV-04/05/06/25 parciais.
+  - Next step: simular falha parcial no Resumo para REV-12; provar REV-14 por teclado/leitor de tela; REV-04 com rede lenta, unicidade e clique duplo em Compras; REV-05 com respostas A atrasadas após B; REV-06 no app autenticado após criar/excluir/confirmar; REV-25 em aparelho físico e com teclado virtual.
+- Updated: 2026-11-17
+
 ## SITE-002 — Previews, texto e estudo de marca
 
 - Status: complete
@@ -34,6 +54,16 @@ roadmap ou registro de atividades.
 - Evidence: commit descritivo 444fb0c enviado; CI 44141028050 passou, APK 0.3.0/versionCode 3000 com mesmo certificado, Windows arrancou no CI, tag anotada e assets públicos conferidos por SHA-256. Chrome confirmou links 0.3.0 no site publicado.
 - Next step: nenhuma pendência desta publicação; validações de dados/dispositivos continuam em CLOUD-001.
 - Updated: 2026-11-17
+
+## REL-003 — Release 0.4.0 com Vaporwave 95 e QA mobile
+
+  - Status: in progress
+  - Owner/lane: Codex
+  - Scope: commit/push das correções revisadas, publicar instaladores Windows/Android e atualizar previews/downloads do site.
+  - Boundaries: preservar assinatura Android, releases/dados anteriores; migration de dívida não aplicada ao Supabase permanece explicitamente desabilitada.
+  - Evidence: build frontend, três testes financeiros, `cargo check --locked`, check de versões e QA Edge (240 cenários do app, quatro larguras/16 combinações no site) passaram. Release notes 0.4.0 e site preparados; downloads do site consultam releases públicas.
+  - Next step: enviar commit, disparar o workflow `release.yml`, aguardar publicação, verificar checksums/assets e confirmar deployment do Pages.
+  - Updated: 2026-11-17
 
 ## UI-AERO — Identidade Frutiger Aero
 

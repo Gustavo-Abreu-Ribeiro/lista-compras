@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import type { FormEvent } from "react"
+import { useEffect, useRef, useState } from "react"
+import type { FormEvent, KeyboardEvent } from "react"
 import AppNavigation from "./AppNavigation"
 import {
   listCategories,
@@ -44,10 +44,51 @@ export default function AppLayout() {
   const [priceValue, setPriceValue] = useState("")
   const [linkError, setLinkError] = useState("")
   const [isSavingLink, setIsSavingLink] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [dataError, setDataError] = useState("")
+  const submitLock = useRef(false)
+  const itemsRequest = useRef(0)
+  const linksRequest = useRef(0)
+  const modalRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!modalType) return
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const firstControl = modalRef.current?.querySelector<HTMLElement>(
+      'input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+    ) ?? modalRef.current?.querySelector<HTMLElement>(
+      'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+    firstControl?.focus()
+    return () => previousFocus?.focus()
+  }, [modalType])
+
+  function handleModalKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault()
+      closeModal()
+      return
+    }
+    if (event.key !== "Tab") return
+    const controls = modalRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+    if (!controls?.length) return
+    const first = controls[0]
+    const last = controls[controls.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
 
   function openCategoryModal() {
     setCategoryName("")
+    setFormError("")
     setModalType("category")
   }
 
@@ -55,6 +96,7 @@ export default function AppLayout() {
     setItemName("")
     setItemCategoryChoice(selectedCategory ? String(selectedCategory.id) : categories.length === 0 ? "__new__" : "")
     setNewItemCategoryName("")
+    setFormError("")
     setModalType("item")
   }
 
@@ -68,6 +110,7 @@ export default function AppLayout() {
   }
 
   function closeModal() {
+    if (submitLock.current) return
     setModalType(null)
   }
 
@@ -84,34 +127,59 @@ export default function AppLayout() {
   }
 
   async function submitCategory() {
-    if (!categoryName.trim()) return
-    await createCategory(categoryName.trim())
-    loadCategories()
-    closeModal()
+    if (!categoryName.trim() || submitLock.current) return
+    submitLock.current = true
+    setIsSubmitting(true)
+    setFormError("")
+    try {
+      const created = await createCategory(categoryName.trim())
+      setCategories((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")))
+      setDataError("")
+      setModalType(null)
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : String(error))
+    } finally {
+      submitLock.current = false
+      setIsSubmitting(false)
+    }
   }
 
   async function removeCategory(category: Category) {
-    if (!confirm(`Remover categoria "${category.name}"?`)) return
-    await deleteCategory(category.id)
-
-    setSelectedCategory(null)
-    setSelectedItem(null)
-    setItems([])
-    setLinks([])
-    setPriceHistory([])
-
-    loadCategories()
+    try {
+      const affectedItems = await listItemsByCategory(category.id)
+      const affectedLinks = await Promise.all(affectedItems.map((item) => listLinksByItem(item.id)))
+      const linkCount = affectedLinks.reduce((sum, group) => sum + group.length, 0)
+      if (!confirm(`Remover a categoria “${category.name}”? Isso também removerá ${affectedItems.length} item(ns) e ${linkCount} link(s) de loja associados. Esta ação não pode ser desfeita.`)) return
+      await deleteCategory(category.id)
+      itemsRequest.current += 1
+      linksRequest.current += 1
+      setSelectedCategory(null)
+      setSelectedItem(null)
+      setItems([])
+      setLinks([])
+      setPriceHistory([])
+      await loadCategories()
+      setDataError("")
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : String(error))
+    }
   }
 
   /* ---------------- ITEMS ---------------- */
 
   async function loadItems(categoryId: number) {
-    const loadedItems = await listItemsByCategory(categoryId)
-    setItems(loadedItems)
+    const request = ++itemsRequest.current
+    linksRequest.current += 1
+    setItems([])
     setSelectedItem(null)
     setLinks([])
     setPriceHistory([])
-
+    try {
+      const loadedItems = await listItemsByCategory(categoryId)
+      if (request === itemsRequest.current) { setItems(loadedItems); setDataError("") }
+    } catch (error) {
+      if (request === itemsRequest.current) setDataError(error instanceof Error ? error.message : String(error))
+    }
   }
 
   async function addItem() {
@@ -120,38 +188,58 @@ export default function AppLayout() {
 
   async function submitItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!itemName.trim()) return
-
-    let category = categories.find((candidate) => String(candidate.id) === itemCategoryChoice)
-    if (itemCategoryChoice === "__new__") {
-      const name = newItemCategoryName.trim()
-      if (!name) return
-      await createCategory(name)
-      const refreshedCategories = await listCategories()
-      category = refreshedCategories.find((candidate) => candidate.name.toLocaleLowerCase() === name.toLocaleLowerCase())
-      setCategories(refreshedCategories)
+    if (!itemName.trim() || submitLock.current) return
+    submitLock.current = true
+    setIsSubmitting(true)
+    setFormError("")
+    try {
+      let category = categories.find((candidate) => String(candidate.id) === itemCategoryChoice)
+      if (itemCategoryChoice === "__new__") {
+        const name = newItemCategoryName.trim()
+        if (!name) return
+        const created = await createCategory(name)
+        category = created
+        setCategories((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")))
+        setItemCategoryChoice(String(created.id))
+        setNewItemCategoryName("")
+      }
+      if (!category) { setFormError("Escolha uma categoria para o item."); return }
+      await createItem(itemName.trim(), category.id)
+      setSelectedCategory(category)
+      await loadItems(category.id)
+      setModalType(null)
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : String(error))
+    } finally {
+      submitLock.current = false
+      setIsSubmitting(false)
     }
-    if (!category) return
-
-    await createItem(itemName.trim(), category.id)
-    setSelectedCategory(category)
-    await loadItems(category.id)
-    closeModal()
   }
 
   async function removeItem(item: Item) {
     if (!confirm(`Remover item "${item.name}"?`)) return
-    await deleteItem(item.id)
-    if (selectedCategory) loadItems(selectedCategory.id)
+    try {
+      await deleteItem(item.id)
+      if (selectedCategory) await loadItems(selectedCategory.id)
+    } catch (error) { setDataError(error instanceof Error ? error.message : String(error)) }
   }
 
   /* ---------------- LINKS ---------------- */
 
   async function loadLinks(itemId: number) {
-    const linkRows = await listLinksByItem(itemId)
-    const history = await listItemLinkPriceHistory(itemId).catch(() => [])
-    setLinks(linkRows)
-    setPriceHistory(history)
+    const request = ++linksRequest.current
+    setLinks([])
+    setPriceHistory([])
+    const [linksResult, historyResult] = await Promise.allSettled([
+      listLinksByItem(itemId), listItemLinkPriceHistory(itemId),
+    ])
+    if (request !== linksRequest.current) return
+    if (linksResult.status === "fulfilled") setLinks(linksResult.value)
+    if (historyResult.status === "fulfilled") setPriceHistory(historyResult.value)
+    const failure = linksResult.status === "rejected" ? linksResult.reason
+      : historyResult.status === "rejected" ? historyResult.reason : null
+    if (failure) setDataError(failure instanceof Error ? failure.message : String(failure))
+    else setDataError("")
   }
 
   async function addLink() {
@@ -160,12 +248,14 @@ export default function AppLayout() {
 
   async function submitLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submitLock.current) return
     if (!selectedItem) {
       setLinkError("Selecione um item antes de adicionar uma loja.")
       return
     }
 
     setLinkError("")
+    submitLock.current = true
     setIsSavingLink(true)
     try {
       const storeNameRaw = storeName.trim()
@@ -227,10 +317,11 @@ export default function AppLayout() {
 
       await createLink(selectedItem.id, finalStoreName, finalUrl, finalPrice)
       await loadLinks(selectedItem.id)
-      closeModal()
+      setModalType(null)
     } catch (error) {
       setLinkError(error instanceof Error ? error.message : String(error))
     } finally {
+      submitLock.current = false
       setIsSavingLink(false)
     }
   }
@@ -242,8 +333,10 @@ export default function AppLayout() {
 
   async function removeLink(link: ItemLink) {
     if (!confirm(`Remover link da loja "${link.store_name}"?`)) return
-    await deleteLink(link.id)
-    if (selectedItem) loadLinks(selectedItem.id)
+    try {
+      await deleteLink(link.id)
+      if (selectedItem) await loadLinks(selectedItem.id)
+    } catch (error) { setDataError(error instanceof Error ? error.message : String(error)) }
   }
 
   useEffect(() => {
@@ -304,7 +397,7 @@ export default function AppLayout() {
               >
                 {c.name}
               </button>
-              <button className="icon danger" onClick={() => removeCategory(c)}>
+              <button className="icon danger" aria-label={`Remover categoria ${c.name}`} onClick={() => removeCategory(c)}>
                 ✕
               </button>
             </li>
@@ -317,10 +410,8 @@ export default function AppLayout() {
         <header className="main-header">
           <div>
             <span className="cartucho-session" aria-hidden="true">SESSION 02 // 買物 // LOG DE AQUISIÇÕES</span>
-            <h1>
-              Itens{" "}
-              {selectedCategory ? `— ${selectedCategory.name}` : ""}
-            </h1>
+            <h1>Itens</h1>
+            {selectedCategory && <p className="selected-category-label">Categoria: {selectedCategory.name}</p>}
           </div>
           <div className="actions">
             <button
@@ -332,6 +423,8 @@ export default function AppLayout() {
             {selectedCategory && <button
               className="btn btn-ghost"
               onClick={() => {
+                itemsRequest.current += 1
+                linksRequest.current += 1
                 setSelectedCategory(null)
                 setSelectedItem(null)
                 setItems([])
@@ -433,7 +526,7 @@ export default function AppLayout() {
 
       {modalType && (
         <div className="modal-overlay" role="presentation">
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div ref={modalRef} className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onKeyDown={handleModalKeyDown}>
             <div className="modal-header">
               <div>
                 <p className="eyebrow">Cadastro rápido</p>
@@ -443,13 +536,13 @@ export default function AppLayout() {
                   {modalType === "link" && "Novo link"}
                 </h3>
               </div>
-              <button className="icon" onClick={closeModal}>
+              <button className="icon" aria-label="Fechar janela" onClick={closeModal} disabled={isSubmitting || isSavingLink}>
                 ✕
               </button>
             </div>
 
             {modalType === "category" && (
-              <div className="modal-body">
+              <form className="modal-body" onSubmit={(event) => { event.preventDefault(); void submitCategory() }}>
                 <label className="field">
                   <span>Nome da categoria</span>
                   <input
@@ -459,15 +552,16 @@ export default function AppLayout() {
                     onChange={(e) => setCategoryName(e.target.value)}
                   />
                 </label>
+                {formError && <p className="form-error" role="alert">{formError}</p>}
                 <div className="modal-actions">
-                  <button className="btn btn-ghost" onClick={closeModal}>
+                  <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={isSubmitting}>
                     Cancelar
                   </button>
-                  <button className="btn btn-primary" onClick={submitCategory}>
-                    Salvar
+                  <button type="submit" className="btn btn-primary" disabled={isSubmitting || !categoryName.trim()}>
+                    {isSubmitting ? "Salvando…" : "Salvar"}
                   </button>
                 </div>
-              </div>
+              </form>
             )}
 
             {modalType === "item" && (
@@ -504,16 +598,17 @@ export default function AppLayout() {
                   />}
                   {categories.length === 0 && <p className="muted">Crie uma categoria e adicione o item em um único passo.</p>}
                 </label>
+                {formError && <p className="form-error" role="alert">{formError}</p>}
                 <div className="modal-actions">
-                  <button type="button" className="btn btn-ghost" onClick={closeModal}>
+                  <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={isSubmitting}>
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={!itemName.trim() || (itemCategoryChoice === "__new__" ? !newItemCategoryName.trim() : !itemCategoryChoice)}
+                    disabled={isSubmitting || !itemName.trim() || (itemCategoryChoice === "__new__" ? !newItemCategoryName.trim() : !itemCategoryChoice)}
                   >
-                    Adicionar item
+                    {isSubmitting ? "Salvando…" : "Adicionar item"}
                   </button>
                 </div>
               </form>

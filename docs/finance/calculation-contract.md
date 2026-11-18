@@ -75,9 +75,18 @@ vez e não há amortização presumida.
 
 ## Parcelas
 
+Planos de dívida também são compromissos mensais: quantidade e valor são
+informados pelo usuário, e o total do plano precisa cobrir pelo menos o saldo
+atual registrado. O total do plano e o restante das parcelas pendentes são
+valores separados do saldo atualizado manualmente pelo credor. A confirmação
+reduz o restante do plano e registra um gasto; não recalcula o saldo do credor.
+Ver [ADR-005](../adr/ADR-005-financial-debt-plans.md).
+
 Uma compra de `R$ 1.200,00` em 12 parcelas cria doze obrigações mensais. Cada
 obrigação recebe seu próprio valor em centavos; os centavos restantes são
-distribuídos nas primeiras parcelas. Confirmar que uma parcela foi paga cria o
+distribuídos nas primeiras parcelas. O vencimento mantém o dia informado no
+primeiro mês; em meses mais curtos, usa o último dia do mês e volta ao dia
+original no mês seguinte quando possível. Confirmar que uma parcela foi paga cria o
 gasto realizado e atualiza seu estado na mesma transação PostgreSQL. A chave da
 parcela impede um segundo lançamento, inclusive em caso de repetição da ação.
 

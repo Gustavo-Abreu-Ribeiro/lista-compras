@@ -1,7 +1,8 @@
 import { supabase } from "../../services/supabase"
+import { installmentSchedule } from "./installmentSchedule"
 import type {
   FinancialAccount, FinancialBudget, FinancialCategory, FinancialDashboard,
-  FinancialDebt, FinancialGoal, FinancialHistoryPoint, FinancialInstallment,
+  FinancialDebt, FinancialDebtInstallment, FinancialGoal, FinancialHistoryPoint, FinancialInstallment,
   FinancialRecurrence, FinancialTransaction,
 } from "../../types/Finance"
 
@@ -64,15 +65,15 @@ export async function listFinancialTransactions(month: string): Promise<Financia
 
 export async function listFinancialHistory(month: string): Promise<FinancialHistoryPoint[]> {
   const [year, monthIndex] = month.split("-").map(Number)
-  const start = new Date(Date.UTC(year, monthIndex - 6, 1))
-  const end = new Date(Date.UTC(year, monthIndex, 1))
+  const start = new Date(Date.UTC(year, monthIndex - 5, 1))
+  const end = new Date(Date.UTC(year, monthIndex + 1, 1))
   const rows = await read<Array<Pick<FinancialTransaction, "kind" | "amount_cents" | "occurred_on" | "status">>>(
     client().from("app_financial_transactions").select("kind,amount_cents,occurred_on,status")
       .eq("status", "posted").gte("occurred_on", start.toISOString().slice(0, 10)).lt("occurred_on", end.toISOString().slice(0, 10)),
   )
   const totals = new Map<string, FinancialHistoryPoint>()
   for (let offset = 0; offset < 6; offset++) {
-    const date = new Date(Date.UTC(year, monthIndex - 6 + offset, 1))
+    const date = new Date(Date.UTC(year, monthIndex - 5 + offset, 1))
     const key = date.toISOString().slice(0, 7)
     totals.set(key, { month: key, income_cents: 0, spent_cents: 0 })
   }
@@ -107,23 +108,28 @@ export async function deleteFinancialTransaction(id: number): Promise<void> {
 }
 
 export async function createFinancialInstallment(description: string, totalCents: number, installmentCount: number, firstDueOn: string, categoryId: number | null, accountId: number | null): Promise<void> {
-  const first = new Date(`${firstDueOn}T00:00:00Z`)
-  const base = Math.floor(totalCents / installmentCount)
-  const remainder = totalCents % installmentCount
-  const rows = Array.from({ length: installmentCount }, (_, index) => {
-    const date = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + index, 1))
-    return {
-      uuid: crypto.randomUUID(), description: description.trim(),
-      amount_cents: base + (index < remainder ? 1 : 0), due_on: date.toISOString().slice(0, 10),
-      category_id: categoryId, account_id: accountId, state: "pending",
-    }
-  })
+  const rows = installmentSchedule(totalCents, installmentCount, firstDueOn).map((installment) => ({
+    uuid: crypto.randomUUID(), description: description.trim(),
+    ...installment, category_id: categoryId, account_id: accountId, state: "pending",
+  }))
   await read(client().from("app_financial_installments").insert(rows))
 }
 export async function listFinancialInstallments(month: string): Promise<FinancialInstallment[]> {
   const { start, end } = monthBounds(month)
-  return read(client().from("app_financial_installments").select("id,description,amount_cents,due_on,state")
+  return read(client().from("app_financial_installments").select("id,description,amount_cents,due_on,state,debt_id")
     .gte("due_on", start).lt("due_on", end).order("due_on"))
+}
+export const listFinancialDebtInstallments = () => read<FinancialDebtInstallment[]>(
+  client().from("app_financial_installments")
+    .select("id,debt_id,description,amount_cents,due_on,state")
+    .not("debt_id", "is", null).order("due_on"),
+)
+export async function createFinancialDebtPlan(name: string, balanceCents: number, installmentCount: number, installmentCents: number, firstDueOn: string): Promise<void> {
+  await read(client().rpc("app_create_financial_debt_plan", {
+    p_name: name.trim(), p_balance_cents: balanceCents,
+    p_installment_count: installmentCount, p_installment_cents: installmentCents,
+    p_first_due_on: firstDueOn,
+  }))
 }
 export async function markFinancialInstallmentPaid(id: number): Promise<void> {
   await read(client().rpc("app_mark_financial_installment_paid", { p_installment_id: id }))

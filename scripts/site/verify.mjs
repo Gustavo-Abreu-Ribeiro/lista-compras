@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const { chromium } = await import(process.argv[2] || "playwright-core");
-const browser = await chromium.launch({ channel: "chrome", headless: true });
+const browser = await chromium.launch({ channel: "msedge", headless: true });
 const base = process.argv[3] || "http://127.0.0.1:4173";
 const errors = [];
 const context = await browser.newContext();
@@ -58,6 +58,7 @@ for (const width of [1440, 768, 390, 320]) {
   for (const [theme, label] of [
     ["cartucho", "Cartucho"],
     ["aero", "Frutiger Aero"],
+    ["vaporwave", "Vaporwave 95"],
     ["light", "Feira"],
   ]) {
     await page
@@ -89,6 +90,7 @@ for (const width of [1440, 768, 390, 320]) {
     "mobile",
     "cartucho-mobile",
     "aero-mobile",
+    "vaporwave-mobile",
   ].entries()) {
     await page
       .locator(".theme-examples article")
@@ -175,5 +177,5 @@ assert(
 assert.deepEqual(errors, []);
 await browser.close();
 console.log(
-  "PASS: 4 widths; all 12 theme/route combinations; desktop and mobile image dialogs; keyboard tabs; FAQ; downloads present/absent/API failure; no browser errors.",
+  "PASS: 4 widths; all 16 theme/route combinations; desktop and mobile image dialogs; keyboard tabs; FAQ; downloads present/absent/API failure; no browser errors.",
 );

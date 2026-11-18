@@ -1,17 +1,18 @@
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 import AppNavigation from "./AppNavigation"
 import {
   createFinancialAccount, createFinancialCategory, createFinancialGoal,
   createFinancialInstallment, createFinancialTransaction, getFinancialDashboard,
   listFinancialAccounts, listFinancialCategories, listFinancialGoals,
+  listFinancialDebtInstallments,
   listFinancialInstallments, listFinancialTransactions, markFinancialInstallmentPaid,
   createFinancialRecurrence, listFinancialRecurrences,
-  setFinancialRecurrenceActive, createFinancialDebt, listFinancialDebts, setFinancialTransactionStatus, updateFinancialDebtBalance,
+  setFinancialRecurrenceActive, createFinancialDebtPlan, listFinancialDebts, setFinancialTransactionStatus, updateFinancialDebtBalance,
   listFinancialBudgets, upsertFinancialBudget,
   listFinancialHistory,
   deleteFinancialTransaction,
 } from "../../features/finance/api"
-import type { FinancialAccount, FinancialCategory, FinancialDashboard, FinancialGoal, FinancialInstallment, FinancialTransaction, FinancialRecurrence, FinancialDebt, FinancialBudget, FinancialHistoryPoint } from "../../types/Finance"
+import type { FinancialAccount, FinancialCategory, FinancialDashboard, FinancialGoal, FinancialInstallment, FinancialDebtInstallment, FinancialTransaction, FinancialRecurrence, FinancialDebt, FinancialBudget, FinancialHistoryPoint } from "../../types/Finance"
 
 const now = new Date()
 const today = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10)
@@ -24,6 +25,7 @@ const toCents = (value: string) => {
   return Math.round(amount * 100)
 }
 const formatMoney = (value: number) => money.format(value / 100)
+const previewCents = (value: string) => { try { return toCents(value) } catch { return 0 } }
 
 export default function FinanceLayout() {
   const [month, setMonth] = useState(currentMonth)
@@ -35,6 +37,8 @@ export default function FinanceLayout() {
   const [goals, setGoals] = useState<FinancialGoal[]>([])
   const [recurrences, setRecurrences] = useState<FinancialRecurrence[]>([])
   const [debts, setDebts] = useState<FinancialDebt[]>([])
+  const [debtInstallments, setDebtInstallments] = useState<FinancialDebtInstallment[]>([])
+  const [debtPlansUnavailable, setDebtPlansUnavailable] = useState(true)
   const [budgets, setBudgets] = useState<FinancialBudget[]>([])
   const [history, setHistory] = useState<FinancialHistoryPoint[]>([])
   const [tab, setTab] = useState<"overview" | "planning" | "transactions">("overview")
@@ -47,23 +51,41 @@ export default function FinanceLayout() {
   const [goal, setGoal] = useState({ name: "", target: "", saved: "", dueOn: "", minimum: "", ideal: "" })
   const [installment, setInstallment] = useState({ description: "", total: "", count: "2", dueOn: today, categoryId: "", accountId: "" })
   const [recurrence, setRecurrence] = useState({ kind: "expense", description: "", amount: "", day: "5", categoryId: "", accountId: "" })
-  const [debt, setDebt] = useState({ name: "", balance: "", payment: "", day: "" })
+  const [debt, setDebt] = useState({ name: "", balance: "", count: "1", payment: "", dueOn: today })
   const [debtBalances, setDebtBalances] = useState<Record<number, string>>({})
   const [budgetForm, setBudgetForm] = useState({ categoryId: "", limit: "" })
+  const latestMonth = useRef(month)
+  const loadVersion = useRef(0)
+  const debtBalanceCents = previewCents(debt.balance)
+  const debtInstallmentCents = previewCents(debt.payment)
+  const debtPlanTotalCents = (Number(debt.count) || 0) * debtInstallmentCents
+  const debtPlanTooSmall = debtBalanceCents > 0 && debtPlanTotalCents > 0 && debtPlanTotalCents < debtBalanceCents
 
   async function load() {
+    const requestedMonth = latestMonth.current
+    const version = ++loadVersion.current
     try {
-      const [data, accountRows, categoryRows, transactionRows, installmentRows, goalRows, recurrenceRows, debtRows, budgetRows] = await Promise.all([
-        getFinancialDashboard(month), listFinancialAccounts(), listFinancialCategories(),
-        listFinancialTransactions(month), listFinancialInstallments(month), listFinancialGoals(), listFinancialRecurrences(), listFinancialDebts(), listFinancialBudgets(month),
+      const [data, accountRows, categoryRows, transactionRows, installmentRows, goalRows, recurrenceRows, debtRows, budgetRows, historyRows, debtPlanRows] = await Promise.all([
+        getFinancialDashboard(requestedMonth), listFinancialAccounts(), listFinancialCategories(),
+        listFinancialTransactions(requestedMonth), listFinancialInstallments(requestedMonth), listFinancialGoals(), listFinancialRecurrences(), listFinancialDebts(), listFinancialBudgets(requestedMonth),
+        listFinancialHistory(requestedMonth), listFinancialDebtInstallments().catch(() => null),
       ])
+      if (version !== loadVersion.current || requestedMonth !== latestMonth.current) return
       setDashboard(data); setAccounts(accountRows); setCategories(categoryRows)
-      setTransactions(transactionRows); setInstallments(installmentRows); setGoals(goalRows); setRecurrences(recurrenceRows); setDebts(debtRows); setBudgets(budgetRows)
-    } catch (error) { setNotice(String(error)) }
+      setTransactions(transactionRows); setInstallments(installmentRows); setGoals(goalRows); setRecurrences(recurrenceRows); setDebts(debtRows); setBudgets(budgetRows); setHistory(historyRows)
+      setDebtPlansUnavailable(debtPlanRows === null)
+      setDebtInstallments(debtPlanRows ?? [])
+    } catch (error) {
+      if (version !== loadVersion.current || requestedMonth !== latestMonth.current) return
+      setDashboard(null); setTransactions([]); setInstallments([]); setBudgets([]); setHistory([])
+      setNotice(String(error))
+    }
   }
-  useEffect(() => { load() }, [month])
   useEffect(() => {
-    listFinancialHistory(month).then(setHistory).catch(() => setHistory([]))
+    latestMonth.current = month
+    setDashboard(null); setTransactions([]); setInstallments([]); setBudgets([]); setHistory([])
+    void load()
+    return () => { loadVersion.current += 1 }
   }, [month])
 
   async function submitAccount(event: FormEvent) {
@@ -124,8 +146,8 @@ export default function FinanceLayout() {
   async function submitDebt(event: FormEvent) {
     event.preventDefault()
     try {
-      await createFinancialDebt(debt.name, toCents(debt.balance), toCents(debt.payment || "0"), debt.day ? Number(debt.day) : null, month)
-      setDebt({ name: "", balance: "", payment: "", day: "" }); setNotice("Dívida adicionada ao panorama."); await load()
+      await createFinancialDebtPlan(debt.name, toCents(debt.balance), Number(debt.count), toCents(debt.payment), debt.dueOn)
+      setDebt({ name: "", balance: "", count: "1", payment: "", dueOn: today }); setNotice("Dívida e parcelas adicionadas ao planejamento."); await load()
     } catch (error) { setNotice(String(error)) }
   }
   async function submitBudget(event: FormEvent) {
@@ -172,9 +194,15 @@ export default function FinanceLayout() {
       <section className="finance-grid finance-overview-grid"><article className="card finance-card"><h2>Compromissos do mês</h2><p className="muted">{installments.filter((item) => item.state === "pending").length} parcelas pendentes · {recurrences.filter((item) => item.active).length} recorrências ativas</p><button className="btn btn-secondary" onClick={() => setTab("planning")}>Abrir planejamento</button></article><article className="card finance-card"><h2>Dívidas cadastradas</h2>{debts.length ? <ul className="finance-list">{debts.slice(0, 3).map((item) => <li key={item.id}><span>{item.name}</span><strong>{formatMoney(item.balance_cents)}</strong></li>)}</ul> : <p className="muted">Cadastre dívidas para acompanhar saldo e pagamento mensal.</p>}</article></section>
       </>}
       {tab === "planning" && <>
+      <section className="finance-kpis finance-planning-kpis" aria-label="Painel do planejamento">
+        <Metric label="Saldo das dívidas" value={debts.reduce((sum,item)=>sum+item.balance_cents,0)} hint="Saldo informado manualmente pelo credor" />
+        <Metric label="Parcelas pendentes" value={debtInstallments.filter((item)=>item.state==="pending").reduce((sum,item)=>sum+item.amount_cents,0)} hint="Total restante nos planos cadastrados" />
+        <Metric label="Parcelas neste mês" value={installments.filter((item)=>item.debt_id!=null&&item.state==="pending").reduce((sum,item)=>sum+item.amount_cents,0)} hint={`Compromissos de ${month}`} emphasis />
+      </section>
+      <section className="card finance-card finance-debt-projection"><div className="card-header"><div><h2>Parcelas nos próximos meses</h2><p className="muted">Saídas dos planos de dívida cadastrados; outros ganhos e gastos não entram neste quadro.</p></div></div><ul className="finance-list">{Array.from({length:6},(_,index)=>{const [year,monthNumber]=month.split("-").map(Number);const date=new Date(year,monthNumber-1+index,1);const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`;const amount=debtInstallments.filter((item)=>item.state==="pending"&&item.due_on.startsWith(key)).reduce((sum,item)=>sum+item.amount_cents,0);return <li key={key}><span><strong>{date.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</strong><small>Parcelas de dívidas</small></span><strong>{formatMoney(amount)}</strong></li>})}</ul>{debtPlansUnavailable&&<p className="finance-notice" role="status">Atualize o banco para exibir os planos parcelados de dívidas.</p>}</section>
       <section className="finance-grid finance-grid-lower">
-        <article className="card finance-card"><div className="card-header"><h2>Renda e gastos fixos</h2><span className="badge">mensal</span></div><p className="muted">Cada recorrência cria uma previsão para o mês selecionado. Marque como realizado em Lançamentos quando acontecer.</p><form className="form-stack finance-details" onSubmit={submitRecurrence}><label className="field"><span>Tipo recorrente</span><select className="input" value={recurrence.kind} onChange={(e)=>setRecurrence({...recurrence,kind:e.target.value,categoryId:""})}><option value="income">Salário / renda</option><option value="expense">Gasto fixo</option></select></label><input className="input" required placeholder="Descrição (ex.: salário, aluguel)" value={recurrence.description} onChange={(e)=>setRecurrence({...recurrence,description:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Valor mensal" value={recurrence.amount} onChange={(e)=>setRecurrence({...recurrence,amount:e.target.value})}/><label className="field"><span>Dia do mês</span><input className="input" type="number" min="1" max="31" value={recurrence.day} onChange={(e)=>setRecurrence({...recurrence,day:e.target.value})}/></label></div><CategoryPicker label="Categoria da recorrência (opcional)" kind={recurrence.kind as "income" | "expense"} value={recurrence.categoryId} onChange={(categoryId) => setRecurrence({...recurrence, categoryId})} categories={categories} onCreate={createCategoryFromPicker} /><button className="btn btn-primary">Adicionar recorrência</button></form><ul className="finance-list">{recurrences.map((item)=><li key={item.id}><span><strong>{item.description}</strong><small>{item.kind === "income" ? "Renda" : "Gasto fixo"} · dia {item.day_of_month} · {formatMoney(item.amount_cents)}</small></span><button className="btn btn-ghost" onClick={async()=>{await setFinancialRecurrenceActive(item.id,!item.active); await load()}}>{item.active ? "Pausar" : "Ativar"}</button></li>)}</ul></article>
-        <article className="card finance-card"><h2>Dívidas</h2><p className="muted">Saldo cadastrado e pagamento esperado. Informar pagamento mensal cria um gasto fixo no planejamento; atualize o saldo devedor manualmente após pagar.</p><form className="form-stack finance-details" onSubmit={submitDebt}><input className="input" required placeholder="Nome da dívida" value={debt.name} onChange={(e)=>setDebt({...debt,name:e.target.value})}/><input className="input" required inputMode="decimal" placeholder="Saldo devedor" value={debt.balance} onChange={(e)=>setDebt({...debt,balance:e.target.value})}/><div className="form-row"><input className="input" inputMode="decimal" placeholder="Pagamento mensal (opcional)" value={debt.payment} onChange={(e)=>setDebt({...debt,payment:e.target.value})}/><input className="input" type="number" min="1" max="31" placeholder="Dia vencimento" required={Boolean(debt.payment)} value={debt.day} onChange={(e)=>setDebt({...debt,day:e.target.value})}/></div><button className="btn btn-secondary">Adicionar dívida</button></form><ul className="finance-list">{debts.map((item)=><li className="debt-row" key={item.id}><span><strong>{item.name}</strong><small>{item.due_day ? `Vence dia ${item.due_day} · ` : ""}Pagamento {formatMoney(item.monthly_payment_cents)}/mês</small></span><span className="debt-balance"><strong>{formatMoney(item.balance_cents)}</strong><input className="input" aria-label={`Novo saldo de ${item.name}`} inputMode="decimal" placeholder="Novo saldo" value={debtBalances[item.id] ?? ""} onChange={(e)=>setDebtBalances({...debtBalances,[item.id]:e.target.value})}/><button className="btn btn-ghost" disabled={!debtBalances[item.id]} onClick={async()=>{await updateFinancialDebtBalance(item.id,toCents(debtBalances[item.id] ?? "0")); setDebtBalances({...debtBalances,[item.id]:""}); setNotice("Saldo da dívida atualizado."); await load()}}>Atualizar saldo</button></span></li>)}</ul></article>
+        <article className="card finance-card"><div className="card-header"><h2>Renda e gastos fixos</h2><span className="badge">mensal</span></div><p className="muted">Cada recorrência cria uma previsão para o mês selecionado. Marque como realizado em Lançamentos quando acontecer.</p><details className="finance-add-recurrence"><summary>+ Planejar renda ou gasto fixo</summary><form className="form-stack finance-details" onSubmit={submitRecurrence}><label className="field"><span>Tipo recorrente</span><select className="input" value={recurrence.kind} onChange={(e)=>setRecurrence({...recurrence,kind:e.target.value,categoryId:""})}><option value="income">Salário / renda</option><option value="expense">Gasto fixo</option></select></label><input className="input" required placeholder="Descrição (ex.: salário, aluguel)" value={recurrence.description} onChange={(e)=>setRecurrence({...recurrence,description:e.target.value})}/><div className="form-row"><input className="input" required inputMode="decimal" placeholder="Valor mensal" value={recurrence.amount} onChange={(e)=>setRecurrence({...recurrence,amount:e.target.value})}/><label className="field"><span>Dia do mês</span><input className="input" type="number" min="1" max="31" value={recurrence.day} onChange={(e)=>setRecurrence({...recurrence,day:e.target.value})}/></label></div><CategoryPicker label="Categoria da recorrência (opcional)" kind={recurrence.kind as "income" | "expense"} value={recurrence.categoryId} onChange={(categoryId) => setRecurrence({...recurrence, categoryId})} categories={categories} onCreate={createCategoryFromPicker} /><button className="btn btn-primary">Adicionar recorrência</button></form></details><ul className="finance-list">{recurrences.map((item)=><li key={item.id}><span><strong>{item.description}</strong><small>{item.kind === "income" ? "Renda" : "Gasto fixo"} · dia {item.day_of_month} · {formatMoney(item.amount_cents)}</small></span><button className="btn btn-ghost" onClick={async()=>{await setFinancialRecurrenceActive(item.id,!item.active); await load()}}>{item.active ? "Pausar" : "Ativar"}</button></li>)}</ul></article>
+        <article className="card finance-card"><h2>Dívidas</h2><p className="muted">Saldo cadastrado e pagamento esperado. Informar pagamento mensal cria um gasto fixo no planejamento; atualize o saldo devedor manualmente após pagar.</p><details className="finance-add-debt"><summary>+ Cadastrar dívida parcelada</summary><form className="form-stack finance-details" onSubmit={submitDebt}><input className="input" required placeholder="Nome da dívida" value={debt.name} onChange={(e)=>setDebt({...debt,name:e.target.value})}/><input className="input" required inputMode="decimal" placeholder="Saldo devedor" value={debt.balance} onChange={(e)=>setDebt({...debt,balance:e.target.value})}/><div className="form-row"><label className="field"><span>Quantidade de parcelas</span><input className="input" type="number" min="1" max="120" required value={debt.count} onChange={(e)=>setDebt({...debt,count:e.target.value})}/></label><label className="field"><span>Valor por parcela</span><input className="input" required inputMode="decimal" placeholder="Ex.: 40,00" value={debt.payment} onChange={(e)=>setDebt({...debt,payment:e.target.value})}/></label></div><label className="field"><span>Primeiro vencimento</span><input className="input" type="date" required value={debt.dueOn} onChange={(e)=>setDebt({...debt,dueOn:e.target.value})}/></label><p className="muted">Total programado: {formatMoney(debtPlanTotalCents)}. O total precisa cobrir o saldo informado; Diferença acima do saldo: {formatMoney(Math.max(0,debtPlanTotalCents-debtBalanceCents))}.</p>{debtPlanTooSmall && <p className="finance-notice" role="alert">O total das parcelas não pode ser menor que o saldo devedor.</p>}{debtPlansUnavailable && <p className="finance-notice" role="status">Atualização do banco pendente; o cadastro parcelado será liberado após aplicá-la.</p>}<button className="btn btn-secondary" disabled={debtPlanTooSmall||debtPlansUnavailable}>Adicionar dívida</button></form></details><ul className="finance-list">{debts.map((item)=>{const plan=debtInstallments.filter((row)=>row.debt_id===item.id);const total=plan.reduce((sum,row)=>sum+row.amount_cents,0);const remaining=plan.filter((row)=>row.state==="pending").reduce((sum,row)=>sum+row.amount_cents,0);return <details className="debt-row" key={item.id}><summary><span><strong>{item.name}</strong><small>{plan.length?`${plan.length} parcelas · ${formatMoney(item.monthly_payment_cents)}/mês`:debtPlansUnavailable?"Atualização do banco pendente":"Sem parcelas associadas"}</small></span><strong>{formatMoney(item.balance_cents)}</strong></summary><div className="debt-plan-detail"><p>Saldo informado pelo credor: {formatMoney(item.balance_cents)}. Total programado: {formatMoney(total)}. Falta pagar neste plano: {formatMoney(remaining)}.</p>{debtPlansUnavailable&&<p className="finance-notice" role="status">Aplique a atualização do banco para consultar e pagar parcelas desta dívida.</p>}<ul className="finance-list">{plan.map((row)=><li key={row.id}><span><strong>{row.description}</strong><small>{row.due_on}</small></span><span>{formatMoney(row.amount_cents)} {row.state==="pending"&&<button type="button" className="btn btn-ghost" onClick={()=>payInstallment(row.id)}>Confirmar pagamento</button>}</span></li>)}</ul><label className="field"><span>Atualizar saldo pelo extrato do credor</span><input className="input" aria-label={`Novo saldo de ${item.name}`} inputMode="decimal" placeholder="Novo saldo" value={debtBalances[item.id]??""} onChange={(e)=>setDebtBalances({...debtBalances,[item.id]:e.target.value})}/></label><button type="button" className="btn btn-ghost" disabled={!debtBalances[item.id]} onClick={async()=>{await updateFinancialDebtBalance(item.id,toCents(debtBalances[item.id]??"0"));setDebtBalances({...debtBalances,[item.id]:""});setNotice("Saldo da dívida atualizado.");await load()}}>Atualizar saldo</button></div></details>})}</ul></article>
       </section>
       <details className="finance-supporting"><summary>Contas, categorias, parcelas, metas e limites</summary>
       <section className="finance-grid finance-grid-lower">

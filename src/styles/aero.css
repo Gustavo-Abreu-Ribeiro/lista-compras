@@ -178,3 +178,204 @@ html[data-theme="aero"] .modal { background: #f5fcff; border: 1px solid #fff; pa
 @media (prefers-reduced-motion: reduce) {
   html[data-theme="aero"] *,html[data-theme="aero"] *::before,html[data-theme="aero"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+@media (max-width: 360px) {
+  html[data-theme="aero"] :is(.home-overview-grid, .finance-kpis) { grid-template-columns: minmax(0, 1fr); }
+  html[data-theme="aero"] .home-stat-emphasis,
+  html[data-theme="aero"] .home-stat-card:last-child { grid-column: auto; }
+  html[data-theme="aero"] :is(.home-hero, .finance-header, .main.panel, .card) { padding: 14px; }
+}
+
+/* Full Aero composition pass: landscape canvas, floating workspace, organic panels. */
+html[data-theme="aero"] body { background-image: url('/themes/aero/landscape.svg'), radial-gradient(ellipse at 78% 12%,#fff 0 4%,transparent 24%),linear-gradient(155deg,#b2e7fa,#dcf5ff 48%,#b9e6c2); background-size: min(100vw,1100px) auto,auto,cover; background-position: right 12% bottom 5%,center,center; background-repeat: no-repeat; background-attachment: fixed; }
+html[data-theme="aero"] .page { gap: 26px; }
+html[data-theme="aero"] .top-nav { min-height: 76px; }
+html[data-theme="aero"] .home-shell,html[data-theme="aero"] .finance-shell,html[data-theme="aero"] .app-shell,html[data-theme="aero"] .intro-shell { position: relative; }
+html[data-theme="aero"] :is(.home-hero,.finance-header,.main-header) { border-radius: 28px 28px 12px 28px; box-shadow: 0 14px 34px #1679a426,inset 0 2px #fff; }
+html[data-theme="aero"] .home-hero { background: radial-gradient(ellipse at 85% 15%,#fff 0 7%,transparent 8%),linear-gradient(115deg,#ffffffef 0 48%,#d8f3ffde 70%,#ddf4c9e8); }
+html[data-theme="aero"] .home-hero::after { width:240px;height:240px;right:4%;top:-75px;border:8px solid #ffffff70;box-shadow:0 0 0 1px #83c8dc,inset 0 0 25px #fff; }
+html[data-theme="aero"] :is(.card,.panel,.sync-card,.finance-metric) { border-radius: 22px 22px 12px 22px; box-shadow:0 12px 28px #126e921e,inset 0 2px #fff; }
+html[data-theme="aero"] .home-stat-emphasis { background:radial-gradient(ellipse at 20% 0%,#fff 0,transparent 45%),linear-gradient(145deg,#e8ffd1,#a8dc83 55%,#78c7a0); }
+html[data-theme="aero"] .sidebar.panel { background:linear-gradient(155deg,#f3fdffed,#bce8f5e8); }
+html[data-theme="aero"] :is(.link-item,.list-item) { border-radius:16px; }
+html[data-theme="aero"] .finance-chart-bars { height:170px; padding:8px 8px 0; border-radius:16px 16px 0 0; background:linear-gradient(#fff8,#e4f7ff80); }
+html[data-theme="aero"] .finance-chart-pair i { width:min(22px,40%); }
+html[data-theme="aero"] .finance-tabs { border-radius:24px; padding:8px; }
+html[data-theme="aero"] .finance-tabs button.is-active { border-radius:18px 18px 8px 18px; }
+html[data-theme="aero"] .sync-card { position:relative; overflow:hidden; }
+html[data-theme="aero"] .sync-card::after { content:"";position:absolute;right:-30px;top:-42px;width:110px;height:110px;border:1px solid #fff;border-radius:50%;box-shadow:0 0 0 12px #ffffff40,0 0 0 24px #ffffff20;pointer-events:none; }
+html[data-theme="aero"] .finance-notice { box-shadow:0 5px 16px #116c8d20; }
+@media (max-width:760px) { html[data-theme="aero"] body { background-size:150vw auto,auto,cover;background-position:right bottom 100px,center,center;background-attachment:scroll; } html[data-theme="aero"] .home-hero::after { right:-70px; } }
+
+/* Frutiger Aero redesign: floating glass controls over a clear sky landscape. */
+.theme-aero {
+  --sample-bg: #b9e8f1;
+  --sample-primary: #1687b5;
+  --sample-stamp: #b3d98c;
+}
+.theme-aero .theme-swatch {
+  border: 1px solid #67b5ca;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(circle at 72% 28%, #fff 0 12%, transparent 13%), linear-gradient(155deg, #9de5f3, #e9fbff 54%, #8aca9b);
+  box-shadow: inset 0 1px 3px #fff;
+}
+html[data-theme="aero"] {
+  --bg: #c6eaf3;
+  --bg-2: #f5ffff;
+  --ink: #16435a;
+  --muted: #52798a;
+  --primary: #087eae;
+  --primary-ink: #fff;
+  --border: #a2d1df;
+  --stamp: #9bcf75;
+  --radius: 24px;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+html[data-theme="aero"] body {
+  background-image:
+    radial-gradient(ellipse at 74% 12%, #fff 0 5%, #ffffff80 5.5%, transparent 19%),
+    url('/themes/aero/landscape.svg'),
+    linear-gradient(180deg, #8ed6ef 0%, #dff7fc 48%, #effff3 74%, #add991 100%);
+  background-size: auto, min(100vw, 1100px) auto, cover;
+  background-position: center, right 12% bottom 5%, center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+html[data-theme="aero"] .top-nav {
+  margin: 14px auto 0;
+  width: min(calc(100% - 32px), 1320px);
+  padding: 10px 16px;
+  border: 1px solid #ffffffd9;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffffd9, #d9f5f6c9);
+  box-shadow: 0 8px 30px #267da52b, inset 0 1px #fff;
+  backdrop-filter: blur(14px);
+}
+html[data-theme="aero"] .brand-mark {
+  border-radius: 12px 18px 12px 18px;
+  background: linear-gradient(145deg, #b9eff4, #4ea7c9 65%, #a5d680);
+  box-shadow: inset 0 2px #ffffffbd, 0 4px 10px #276c8640;
+}
+html[data-theme="aero"] .brand-name { color: #126687; }
+html[data-theme="aero"] :is(.nav-tab, .nav-settings) {
+  border: 1px solid transparent;
+  border-radius: 16px 16px 9px 16px;
+  background: #ffffff54;
+  color: #316477;
+  box-shadow: inset 0 1px #ffffffa6;
+}
+html[data-theme="aero"] :is(.nav-tab:hover, .nav-settings:hover, .nav-tab.is-active, .nav-settings.is-active) {
+  background: linear-gradient(145deg, #fff, #d8f4f4);
+  color: #0872a0;
+  border-color: #a7dce7;
+  box-shadow: 0 3px 12px #2c91aa26, inset 0 1px #fff;
+}
+html[data-theme="aero"] .aero-nav-icon { color: #168cb3; }
+html[data-theme="aero"] :is(.home-shell, .finance-shell, .app-shell, .intro-shell) { position: relative; }
+html[data-theme="aero"] :is(.home-hero, .finance-header, .main-header) {
+  border: 1px solid #ffffffed;
+  border-radius: 30px 30px 14px 30px;
+  background: linear-gradient(115deg, #ffffffed 0 43%, #d5f4f5e8 67%, #e4f5cde8);
+  box-shadow: 0 16px 38px #19769d26, inset 0 2px #fff;
+  backdrop-filter: blur(12px);
+}
+html[data-theme="aero"] :is(.home-hero h1, .finance-header h1, .main-header h1) { color: #126f98; }
+html[data-theme="aero"] .home-hero::after {
+  width: 210px;
+  height: 210px;
+  border: 1px solid #ffffffbf;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 28%, #fff 0 8%, #ffffff55 9%, transparent 40%);
+  box-shadow: inset 0 0 36px #ffffffb3, 0 0 0 10px #c6f0ed52, 0 0 0 22px #ffffff25;
+}
+html[data-theme="aero"] :is(.card, .panel, .sync-card, .finance-metric, .home-stat-card) {
+  border: 1px solid #ffffffec;
+  border-radius: 24px 24px 12px 24px;
+  background: linear-gradient(145deg, #f7ffffff, #e1f7f6e8 70%, #eef9e8ed);
+  box-shadow: 0 12px 30px #176e8d20, inset 0 2px #fff;
+  backdrop-filter: blur(10px);
+}
+html[data-theme="aero"] :is(.panel-header, .sync-header) {
+  border-color: #ffffffc7;
+  border-radius: 18px 18px 10px 18px;
+  background: linear-gradient(110deg, #e8fbff, #d1f0f3 58%, #e8f5d8);
+}
+html[data-theme="aero"] :is(.home-stat-card > strong, .finance-metric strong) { color: #0876a2; }
+html[data-theme="aero"] .home-stat-emphasis {
+  background: radial-gradient(ellipse at 14% 0%, #fff 0, transparent 43%), linear-gradient(145deg, #edffd9, #bde4a0 54%, #a5ddd0);
+  border-color: #faffff;
+  color: #16435a;
+}
+html[data-theme="aero"] .home-stat-emphasis > :is(span, strong, small),
+html[data-theme="aero"] .home-stat-emphasis .home-card-link { color: #16435a; }
+html[data-theme="aero"] :is(.list-item, .link-item, .category-list-item, .game-item) {
+  min-width: 0;
+  border: 1px solid #bfdee4;
+  border-radius: 16px 16px 9px 16px;
+  background: #ffffffa6;
+  box-shadow: inset 0 1px #fff;
+  overflow-wrap: anywhere;
+}
+html[data-theme="aero"] :is(.list-item.active, .category-list-item.is-selected, .game-item.playing) {
+  border-color: #61b8ce;
+  background: linear-gradient(110deg, #e7fcff, #ccecf0);
+}
+html[data-theme="aero"] .finance-tabs {
+  border: 1px solid #ffffffed;
+  border-radius: 22px;
+  background: #effbfbad;
+  box-shadow: inset 0 1px #fff;
+}
+html[data-theme="aero"] .finance-tabs button { color: #3b7183; }
+html[data-theme="aero"] .finance-tabs button.is-active {
+  border-radius: 17px 17px 9px 17px;
+  background: linear-gradient(135deg, #45a5c5, #1680aa);
+  color: #fff;
+  box-shadow: 0 4px 12px #16769a3b, inset 0 1px #ffffff80;
+}
+html[data-theme="aero"] :is(.btn-primary, .btn-secondary, .btn-ghost, .input) {
+  border: 1px solid #ffffffed;
+  border-radius: 14px 14px 8px 14px;
+  box-shadow: inset 0 1px #fff, 0 3px 9px #176e8d16;
+}
+html[data-theme="aero"] .btn-primary { background: linear-gradient(135deg, #55b8d0, #1683ae); color: #fff; }
+html[data-theme="aero"] .input { min-width: 0; background: #ffffffd9; }
+html[data-theme="aero"] .finance-chart-bars { background: linear-gradient(#ffffffa8, #d5f1f1b8); }
+html[data-theme="aero"] .chart-income { background: linear-gradient(#a8d880, #5ea974); }
+html[data-theme="aero"] .chart-expense { background: linear-gradient(#ffb38a, #de796f); }
+html[data-theme="aero"] .app-bottom-nav { backdrop-filter: blur(18px); }
+
+@media (max-width: 760px) {
+  html[data-theme="aero"] body {
+    background-size: auto, 170vw auto, cover;
+    background-position: center, right bottom 92px, center;
+    background-attachment: scroll;
+  }
+  html[data-theme="aero"] .page { gap: 12px; }
+  html[data-theme="aero"] .top-nav {
+    position: sticky;
+    top: 8px;
+    width: calc(100% - 16px);
+    min-width: 0;
+    margin: 8px auto 0;
+    padding: 7px 9px;
+    gap: 6px;
+    border-radius: 18px;
+  }
+  html[data-theme="aero"] .brand { min-width: 0; gap: 7px; }
+  html[data-theme="aero"] .brand-name { max-width: 120px; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html[data-theme="aero"] .nav-settings { margin-left: auto; }
+  html[data-theme="aero"] :is(.home-shell, .finance-shell, .app-shell, .intro-shell) { padding: 10px; }
+  html[data-theme="aero"] :is(.home-hero, .finance-header, .main-header) { padding: 18px; }
+  html[data-theme="aero"] .home-hero::after { width: 110px; height: 110px; right: -25px; top: -30px; }
+  html[data-theme="aero"] :is(.home-overview-grid, .finance-kpis) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  html[data-theme="aero"] :is(.home-stat-card, .finance-metric) { min-width: 0; padding: 13px; }
+  html[data-theme="aero"] .finance-metric strong { font-size: clamp(.9rem, 4vw, 1.1rem); overflow-wrap: anywhere; }
+  html[data-theme="aero"] .link-list:has(.game-item) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  html[data-theme="aero"] .game-item { min-width: 0; padding: 12px; }
+}
+@media (max-width: 380px) {
+  html[data-theme="aero"] .brand-name { display: none; }
+  html[data-theme="aero"] :is(.home-overview-grid, .finance-kpis, .link-list:has(.game-item)) { grid-template-columns: minmax(0, 1fr); }
+  html[data-theme="aero"] .home-stat-emphasis { grid-column: auto; }
+}

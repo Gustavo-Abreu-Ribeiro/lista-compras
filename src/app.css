@@ -371,7 +371,10 @@ a {
 
 .link-item { flex-wrap: wrap; }
 .price-history { flex: 1 0 100%; min-width: 0; padding-top: 10px; border-top: 1px solid var(--border); }
+.price-history { width: 100%; max-width: 100%; }
 .price-history-heading, .price-history-foot { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .76rem; }
+.price-history-heading, .price-history-foot { flex-wrap: wrap; }
+.price-history-heading > *, .price-history-foot > * { min-width: 0; overflow-wrap: anywhere; }
 .price-history-heading strong { color: var(--ink); }
 .price-history svg { display: block; width: 100%; height: 88px; margin: 6px 0; overflow: visible; }
 .price-history svg line { stroke: var(--border); stroke-width: 1; }
@@ -605,11 +608,14 @@ a {
   display: grid;
   place-items: center;
   padding: 16px;
-  z-index: 10;
+  z-index: 50;
 }
 
 .modal {
-  width: min(520px, 94vw);
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: color-mix(in srgb, var(--bg-2) 92%, transparent 8%);
   border: 1px solid var(--border);
   border-radius: 22px;
@@ -930,7 +936,10 @@ a {
   .link-item {
     flex-direction: column;
     align-items: flex-start;
+    flex-wrap: nowrap;
   }
+
+  .price-history { flex: none; align-self: stretch; }
 
   .link-item a {
     width: 100%;
@@ -938,6 +947,11 @@ a {
     align-items: flex-start;
     gap: 6px;
   }
+
+  .link-item a > div { width: 100%; max-width: 100%; }
+  .link-item strong { overflow-wrap: anywhere; }
+  .item-select { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: start; gap: 4px; }
+  .item-open-hint { justify-self: start; }
 
   .check-group {
     flex-direction: row;
@@ -1116,6 +1130,22 @@ details summary { cursor: pointer; font-weight: 600; margin-top: 4px; }
 .debt-row { align-items: flex-start !important; }
 .debt-balance { display: grid; justify-items: end; gap: 6px; min-width: 150px; }
 .debt-balance .input { width: min(190px, 100%); }
+.finance-add-debt > summary, .finance-add-recurrence > summary, .debt-row > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-2);
+  cursor: pointer;
+}
+.finance-add-debt[open] > summary, .finance-add-recurrence[open] > summary { margin-bottom: 12px; }
+.debt-plan-detail { display: grid; gap: 12px; padding: 12px 4px; }
+.debt-plan-detail > p { margin: 0; color: var(--muted); }
+.debt-plan-detail .finance-list { max-height: 320px; overflow: auto; }
 
 .home-shell {
   width: min(1180px, 100%);
@@ -1181,6 +1211,10 @@ details summary { cursor: pointer; font-weight: 600; margin-top: 4px; }
   .finance-onboarding-actions { display: grid; grid-template-columns: 1fr; }
   .finance-onboarding-actions .btn { width: 100%; }
   .finance-supporting > summary { padding: 14px; }
+  .finance-add-debt > summary, .finance-add-recurrence > summary, .debt-row > summary { align-items: flex-start; padding: 10px; }
+  .debt-plan-detail .finance-list { max-height: 260px; }
+  .debt-plan-detail .finance-list li { align-items: flex-start; flex-direction: column; }
+  .debt-plan-detail .finance-list li > span:last-child { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .category-create { align-items: stretch; }
   .category-create .btn { width: 100%; }
   .debt-row { flex-direction: column; }
@@ -1725,4 +1759,31 @@ h1, h2, h3, h4 { letter-spacing: -.035em; }
   .finance-transactions-list li > span:last-child { justify-content: space-between; }
   .finance-transactions-list button { flex: 1 1 auto; }
   .finance-transactions-list .finance-delete { border-color: var(--border); }
+}
+
+/* Keep cards and charts inside narrow phone viewports, including large text. */
+.page :is(.app-shell, .main, .card, .finance-shell, .finance-card, .home-shell, .home-panel) { min-width: 0; }
+.finance-metric strong, .home-stat-card > strong, .finance-summary dd { overflow-wrap: anywhere; }
+.main-header h1, .item-select > span:first-child, .home-shortcut strong,
+.sync-header .badge, .home-price-list a { overflow-wrap: anywhere; }
+.selected-category-label { margin: 6px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.35; overflow-wrap: anywhere; }
+.item-select > span:first-child { min-width: 0; }
+.item-open-hint { flex: 0 0 auto; }
+.sync-header .badge { max-width: 100%; white-space: normal; }
+
+@media (max-width: 480px) {
+  .chart-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
+  .chart-row .bar { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+  .chart-row .count { grid-column: 2; grid-row: 1; text-align: right; }
+  .finance-chart-bars { gap: 3px; }
+  .finance-chart-pair { gap: 2px; padding-inline: 0; }
+  .finance-chart-pair i { width: min(18px, 44%); }
+  .finance-metric strong, .home-stat-card > strong { font-size: clamp(.9rem, 3.8vw, 1.14rem); }
+}
+
+@media (max-width: 360px) {
+  .finance-kpis, .home-overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .finance-summary { grid-template-columns: minmax(0, 1fr); }
+  .finance-tabs button { font-size: .72rem; padding-inline: 2px; }
+  .theme-grid { grid-template-columns: minmax(0, 1fr); }
 }

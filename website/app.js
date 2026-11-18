@@ -25,11 +25,12 @@ const themeNames = {
   light: "Feira",
   cartucho: "Cartucho",
   aero: "Frutiger Aero",
+  vaporwave: "Vaporwave 95",
 };
 let appTheme = "light";
 let activeScreen = "overview";
 const imageDescription = (name) => {
-  const match = /^(cartucho|aero)-(.*)$/.exec(name);
+  const match = /^(cartucho|aero|vaporwave)-(.*)$/.exec(name);
   const theme = match ? themeNames[match[1]] : "Feira";
   const screen = match ? match[2] : name;
   return `${theme} · ${screen === "mobile" ? "Visão geral no celular" : screens[screen]?.[1] || "Captura do app"} · dados fictícios`;

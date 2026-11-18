@@ -29,8 +29,11 @@ Confirme no repositório.
 
 ### Execução
 
-- Preserve a direção React → Tauri command → SQLite.
-- Mantenha mudanças de contrato coordenadas entre TypeScript e Rust.
+- Preserve a direção React → adaptadores `src/features/*/api.ts` → Supabase para
+  dados de negócio. Tauri fornece capacidades nativas, como consulta de preços,
+  e acesso explícito ao SQLite legado durante a migração.
+- Mantenha mudanças de contratos nativos coordenadas entre TypeScript, Rust e
+  documentação.
 - Use os playbooks para UI, Rust/dados ou documentação.
 
 ### Handoff ou conclusão

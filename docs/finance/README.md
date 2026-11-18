@@ -46,3 +46,5 @@ produto-alvo; só os itens marcados como entregues no
 - [ADR-001: valores em centavos](../adr/ADR-001-financial-values-in-cents.md)
 - [ADR-003: recorrências e dívidas](../adr/ADR-003-financial-recurrences-and-debts.md)
 - [ADR-004: categorias, limites e pagamentos](../adr/ADR-004-finance-category-and-payment-flows.md)
+- [ADR-005: planos de pagamento de dívidas](../adr/ADR-005-financial-debt-plans.md)
+- [Experiência de planejamento](../development/finance-planning-experience-2026-11-17.md)

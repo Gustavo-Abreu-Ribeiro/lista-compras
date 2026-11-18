@@ -7,7 +7,6 @@ import { listLinksByItem } from "../../features/itemLinks/api"
 import { getFinancialDashboard, listFinancialInstallments } from "../../features/finance/api"
 import type { FinancialDashboard, FinancialInstallment } from "../../types/Finance"
 import type { Category } from "../../types/Category"
-import type { Item } from "../../types/Item"
 import type { ItemLink } from "../../types/ItemLink"
 
 type PricedLink = ItemLink & { item_name: string }
@@ -25,13 +24,21 @@ export default function HomeLayout() {
   const [dashboard, setDashboard] = useState<FinancialDashboard | null>(null)
   const [installments, setInstallments] = useState<FinancialInstallment[]>([])
   const [loading, setLoading] = useState(true)
+  const [itemsUnavailable, setItemsUnavailable] = useState(false)
+  const [pricesUnavailable, setPricesUnavailable] = useState(false)
+  const [installmentsUnavailable, setInstallmentsUnavailable] = useState(false)
   const [notice, setNotice] = useState("")
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let active = true
 
     async function loadOverview() {
       setLoading(true)
+      setNotice("")
+      setItemsUnavailable(false)
+      setPricesUnavailable(false)
+      setInstallmentsUnavailable(false)
       const [categoryResult, dashboardResult, installmentResult] = await Promise.allSettled([
         listCategories(),
         getFinancialDashboard(currentMonth),
@@ -43,9 +50,12 @@ export default function HomeLayout() {
       setCategories(categoryRows)
       setDashboard(dashboardResult.status === "fulfilled" ? dashboardResult.value : null)
       setInstallments(installmentResult.status === "fulfilled" ? installmentResult.value : [])
+      setInstallmentsUnavailable(installmentResult.status === "rejected")
 
       if (categoryResult.status === "rejected" && dashboardResult.status === "rejected") {
-        setNotice("Abra o aplicativo pelo Tauri para carregar seus dados locais.")
+        setItemsUnavailable(true)
+        setPricesUnavailable(true)
+        setNotice("Não foi possível carregar seus dados no Supabase. Verifique a conexão e tente novamente.")
         setLoading(false)
         return
       }
@@ -53,27 +63,24 @@ export default function HomeLayout() {
         setNotice("Alguns dados não puderam ser carregados. Abra a área correspondente para tentar novamente.")
       }
 
-      const itemGroups = await Promise.all(categoryRows.map(async (category) => {
-        try {
-          return await listItemsByCategory(category.id)
-        } catch {
-          return [] as Item[]
-        }
-      }))
+      const itemGroups = await Promise.allSettled(categoryRows.map((category) => listItemsByCategory(category.id)))
       if (!active) return
 
-      const items = itemGroups.flat()
+      const hasItemFailures = categoryResult.status === "rejected" || itemGroups.some((result) => result.status === "rejected")
+      const items = itemGroups.flatMap((result) => result.status === "fulfilled" ? result.value : [])
+      setItemsUnavailable(hasItemFailures)
       setItemCount(items.length)
-      const linkGroups = await Promise.all(items.map(async (item) => {
-        try {
-          return (await listLinksByItem(item.id)).map((link) => ({ ...link, item_name: item.name }))
-        } catch {
-          return [] as PricedLink[]
-        }
-      }))
+      const linkGroups = await Promise.allSettled(items.map(async (item) =>
+        (await listLinksByItem(item.id)).map((link) => ({ ...link, item_name: item.name }))
+      ))
       if (active) {
+        const hasPriceFailures = hasItemFailures || linkGroups.some((result) => result.status === "rejected")
+        setPricesUnavailable(hasPriceFailures)
+        if (hasItemFailures || hasPriceFailures) {
+          setNotice("Alguns dados de Compras não puderam ser carregados. Os totais indisponíveis aparecem como traço; tente novamente.")
+        }
         const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-        setRecentPrices(linkGroups.flat()
+        setRecentPrices(linkGroups.flatMap((result) => result.status === "fulfilled" ? result.value : [])
           .filter((link) => link.price !== null && new Date(link.created_at).getTime() >= cutoff)
           .sort((a, b) => b.created_at.localeCompare(a.created_at))
           .slice(0, 4))
@@ -83,7 +90,7 @@ export default function HomeLayout() {
 
     void loadOverview()
     return () => { active = false }
-  }, [])
+  }, [reloadKey])
 
   const pendingInstallments = installments.filter((installment) => installment.state === "pending")
 
@@ -99,7 +106,7 @@ export default function HomeLayout() {
         <span className="home-date">{localToday.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span>
       </header>
 
-      {notice && <p className="finance-notice" role="status">{notice}</p>}
+      {notice && <div className="finance-notice" role="alert">{notice} <button className="btn btn-ghost" type="button" onClick={() => setReloadKey((value) => value + 1)}>Tentar novamente</button></div>}
 
       <section className="home-overview-grid" aria-label="Resumo">
         <article className="home-stat-card home-stat-emphasis">
@@ -116,14 +123,14 @@ export default function HomeLayout() {
         </article>
         <article className="home-stat-card">
           <span>Lista de compras</span>
-          <strong>{loading ? "…" : `${itemCount} itens`}</strong>
-          <small>{loading ? "Carregando categorias…" : `${categories.length} categorias na lista`}</small>
+          <strong>{loading ? "…" : itemsUnavailable ? "—" : `${itemCount} itens`}</strong>
+          <small>{loading ? "Carregando categorias…" : itemsUnavailable ? "Itens indisponíveis" : `${categories.length} categorias na lista`}</small>
           <Link to="/shopping" className="home-card-link">Abrir lista <span aria-hidden="true">→</span></Link>
         </article>
         <article className="home-stat-card">
           <span>Parcelas deste mês</span>
-          <strong>{loading ? "…" : formatMoney(pendingInstallments.reduce((sum, installment) => sum + installment.amount_cents, 0))}</strong>
-          <small>{loading ? "Carregando parcelas…" : pendingInstallments.length ? "Pagamentos ainda pendentes" : "Nenhuma parcela pendente"}</small>
+          <strong>{loading ? "…" : installmentsUnavailable ? "—" : formatMoney(pendingInstallments.reduce((sum, installment) => sum + installment.amount_cents, 0))}</strong>
+          <small>{loading ? "Carregando parcelas…" : installmentsUnavailable ? "Não foi possível carregar" : pendingInstallments.length ? "Pagamentos ainda pendentes" : "Nenhuma parcela pendente"}</small>
           <Link to="/finance" className="home-card-link">Ver parcelas <span aria-hidden="true">→</span></Link>
         </article>
       </section>
@@ -134,7 +141,7 @@ export default function HomeLayout() {
             <div><h2>Preços recentes</h2></div>
             <Link className="btn btn-ghost" to="/shopping">Ver compras</Link>
           </div>
-          {recentPrices.length ? <ul className="home-price-list">
+          {pricesUnavailable ? <div className="home-empty-state"><p>Não foi possível carregar os preços recentes.</p><button className="btn btn-ghost" type="button" onClick={() => setReloadKey((value) => value + 1)}>Tentar novamente</button></div> : recentPrices.length ? <ul className="home-price-list">
             {recentPrices.map((link) => <li key={link.id}>
               <span><strong>{link.item_name}</strong><small>{link.store_name}</small></span>
               <a href={link.url} target="_blank" rel="noopener noreferrer">{money.format(link.price ?? 0)} ↗</a>

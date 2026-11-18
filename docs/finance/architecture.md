@@ -33,8 +33,10 @@ projeções, análises, dívidas, notificações e integração com desejos.
 `financial_transactions` registra fatos ou previsões. `financial_recurrences`
 guarda regras mensais; ocorrências são materializadas como transações previstas
 com chave única por regra e mês. `financial_installments` representa
-compromissos mensais futuros. `financial_debts` registra saldos acompanhados
-manualmente. Metas não movem dinheiro sozinhas: a contribuição só ocorre
+compromissos mensais futuros, inclusive pagamentos vinculados a uma dívida.
+`financial_debts` registra o saldo do credor atualizado manualmente; o plano de
+parcelas acompanha total programado e pagamentos restantes sem alterar esse
+saldo automaticamente. Metas não movem dinheiro sozinhas: a contribuição só ocorre
 mediante lançamento confirmado pelo usuário.
 
 ## Regras de evolução

@@ -7,7 +7,60 @@
 
 ## Implementado
 
-- Frutiger Aero é a nona aparência, selecionável em um toque em Ajustes. Altera
+- REL-003 está preparada em 0.4.0: versões sincronizadas, changelog/notas e
+  previews Vaporwave 95 atualizados. QA Edge do app passou em 240 cenários e
+  QA do site passou em quatro larguras. Commit, push, Pages e instaladores ainda
+  aguardam esta unidade de publicação.
+
+- REV-21: criado `.github/workflows/ci.yml`, acionado em pull requests e pushes
+  para `main`, com teste financeiro, build frontend e `cargo check --locked`.
+  Os três comandos passaram localmente; primeira execução hospedada ocorrerá no
+  próximo push/PR.
+
+- REV-01 da [revisão de confiabilidade](../development/project-review-2026-11-17.md)
+  foi corrigido: parcelas mensais preservam o dia escolhido, limitado ao fim do
+  mês quando necessário. Testes de calendário e centavos, `npm run build` e
+  `cargo check` passaram em 2026-11-17. Gravação autenticada ainda segue a
+  validação de runtime de CLOUD-001.
+- A revisão de confiabilidade corrigiu as confirmações antes de remover
+  categorias e jogos (REV-08/09), a mensagem cloud do Resumo com ação de recarga
+  (REV-13), o adaptador de Jogos (REV-19) e o guia de agentes (REV-22).
+  O gráfico financeiro passa a incluir o mês selecionado e participa da recarga
+  após movimentações; prova autenticada de REV-06 ainda pendente.
+- Compras descarta respostas antigas de itens e links após trocar a seleção;
+  Finanças descarta cargas do mês anterior. Falta simular respostas atrasadas no
+  app para concluir REV-05.
+- Ajustes mobile em Jogos Cartucho, gráficos e valores financeiros foram medidos
+  em fixtures Chrome de 320, 360, 390 e 480 px para Cartucho/Aero, sem rolagem
+  horizontal nesses cenários. Outra matriz de 48 cenários cobriu Resumo,
+  Compras, Ajustes e Login em Feira/Cartucho/Aero nas mesmas larguras; revelou
+  e ajudou a corrigir overflow do histórico de preços em Compras. Todas essas
+  fixtures terminaram sem overflow. Dados autenticados, demais aparências e
+  dispositivos reais seguem em REV-25.
+- QA final de responsividade: dez aparências, seis rotas e larguras 320/360/390/480
+  passaram no Edge em 240 combinações, sem rolagem horizontal ou erros de
+  navegador. Foram exercitados links de compras, cards de jogos, painel expansível
+  de dívidas, navegação e login desconectado. Corrigida a navegação inferior do
+  Vaporwave 95 em mobile. REV-25 continua aberta para dispositivo real e teclado
+  virtual.
+- Cadastros de categoria/item/link em Compras bloqueiam reenvio durante a
+  gravação e mostram erro contextual preservando campos. REV-04 ainda exige
+  prova com rede lenta, unicidade e clique duplo no app autenticado.
+- Os modais de Compras agora recebem e restauram foco, contêm Tab/Shift+Tab,
+  fecham com Escape e têm rótulo acessível na remoção de categoria. Build e
+  teste financeiro passaram; validação manual de acessibilidade ainda pendente
+  em REV-14.
+- Resumo não apresenta falhas parciais de itens/preços como listas vazias ou
+  parcelas indisponíveis como zero; adicionada tentativa de recarga dos preços.
+  Build passou; erro simulado no runtime ainda pendente em REV-12.
+- FIN-UX-001 está em curso: painel de planejamento mostra saldo das dívidas,
+  restante do plano e saídas por seis meses; dívida expande para parcelas e
+  confirmação. ADR-005 e migration definem parcelas escolhidas pelo usuário,
+  total mínimo igual ao saldo e saldo do credor manual. Build, teste financeiro
+  e cargo check passaram. Migration/RPC ainda não aplicados/verificados no
+  Supabase; cadastro fica desabilitado até isso.
+
+- Frutiger Aero é uma das dez aparências, selecionável em um toque em Ajustes. Altera
   navegação, composição, superfícies e controles em todas as áreas, com paisagem
   vetorial local, dock móvel e persistência da preferência. Build e QA de seis
   rotas em 1440/768/390/320 px passaram. Incluído nos instaladores 0.3.0 publicados
@@ -15,6 +68,11 @@
   44141028050 passou; SHA-256 dos assets públicos e links no site foram
   conferidos. Veja `docs/design/frutiger-aero.md` e
   `docs/releases/0.3.0-verification.md`.
+
+- Aero recebeu um passe visual com paisagem vetorial e janelas translúcidas; a
+  aparência Vaporwave 95 usa barra de tarefas e controles clássicos sobre pôr do
+  sol pixelado. O QA final mobile das dez aparências passou; conferência em
+  dispositivo real permanece aberta em REV-25.
 
 - Release pública 0.2.0 para Windows x64 (NSIS, sem Authenticode comercial) e
   Android ARM64 (APK assinado), com SHA-256. Os dois builds CI, assinatura APK,
@@ -25,8 +83,8 @@
   com as pendências abaixo.
 
 - Site de apresentação independente em `website/`, com identidade padrão Feira,
-  quinze prints reais dos componentes com dados fictícios, galeria acessível
-  com Feira/Cartucho/Frutiger Aero, comparação de temas, recursos, FAQ e consulta de instaladores nas releases
+  capturas reais dos componentes com dados fictícios, galeria acessível com
+  Feira/Cartucho/Frutiger Aero/Vaporwave 95, comparação de temas, recursos, FAQ e consulta de instaladores nas releases
   públicas. Build frontend e QA Chrome em 1440/768/390/320 px passaram. GitHub
   Pages publicou com sucesso em https://gustavo-abreu-ribeiro.github.io/lista-compras/;
   Revisão de texto/previews publicada pelo Pages 44145187004 (commit 0602d2e),

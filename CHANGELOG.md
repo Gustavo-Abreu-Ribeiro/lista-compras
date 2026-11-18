@@ -5,6 +5,22 @@ e [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-17
+
+### Added
+
+- Tema Vaporwave 95 com interface de janelas clássicas, textura pixelada e
+  navegação móvel própria.
+- Painel de dívidas com planos parcelados, restante por dívida, confirmação de
+  pagamentos e previsão das parcelas; o cadastro depende da migration financeira
+  indicada nas notas da versão.
+
+### Fixed
+
+- Ajustes de responsividade em jogos, gráficos, compras e navegação nas dez
+  aparências, inclusive telas de 320 px.
+- Capturas do site passam a apresentar Vaporwave 95 em desktop e mobile.
+
 ## [0.3.0] - 2026-11-17
 
 ### Added

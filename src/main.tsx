@@ -6,6 +6,7 @@ import { startPriceRefreshSchedule } from "./features/itemLinks/api"
 import "./app.css"
 import "./styles/cartucho.css"
 import "./styles/aero.css"
+import "./styles/vaporwave.css"
 
 const savedTheme = localStorage.getItem("lista-compras:theme")
 if (savedTheme) document.documentElement.dataset.theme = savedTheme

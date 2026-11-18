@@ -3,7 +3,20 @@
 Leia este arquivo antes de iniciar uma mudança. Ele é o resumo de execução mais
 curto do repositório; código, testes e Git continuam sendo a prova final.
 
-## Atividade Atual: CLOUD-001 (Migração para Supabase)
+## Atividade Atual: REVIEW-001 / REL-003 (QA mobile e release 0.4.0)
+
+QA Edge passou para 10 aparências × 6 rotas × 4 larguras (240 cenários), com
+fluxos de compras, jogos, dívida e login desconectado. A matriz revelou e
+corrigiu a navegação Vaporwave 95 sobreposta pelo painel; site atualizado com
+capturas Vaporwave desktop/mobile e versão 0.4.0 preparada. Build, teste
+financeiro, cargo check e QA do site passaram. PRÓXIMO PASSO: commitar e enviar
+as alterações, acionar o workflow manual de release e verificar instaladores,
+checksums e publicação Pages antes de marcar REL-003 concluída.
+
+REV-25 continua aberta só para validação em aparelho físico/teclado virtual;
+não marcar como concluída sem essa prova. Migration financeira também não foi
+aplicada ao Supabase e o app informa quando os planos de dívida estão
+indisponíveis.
 
 **SITE-002 concluída em 2026-11-17:** site com previews Feira/Cartucho/Aero em
 quatro áreas e no celular; texto reescrito de forma descritiva. Commit 0602d2e,
@@ -37,6 +50,31 @@ cloud permanecem abaixo; nenhuma base SQLite foi removida.
 - Prova atual: schema inicial foi executado no projeto (retorno do SQL Editor: “Success. No rows returned”); adapters de compras, jogos, preços e finanças usam Supabase; autenticação protege as rotas. Fluxos financeiros e responsividade estão em correção após relato de falha no runtime.
 
 ## PROXIMO PASSO
+
+Revisão ativa em `docs/development/project-review-2026-11-17.md`: REV-01,
+REV-08, REV-09, REV-13, REV-19, REV-21 e REV-22 estão riscados após correção. REV-06
+foi implementado, mas falta provar no app autenticado: criar, excluir e confirmar
+movimentações sem trocar de mês e comparar totais/gráfico em
+`src/app/layout/FinanceLayout.tsx`. REV-05 também pede prova: atrasar resposta
+de A, selecionar B e conferir que A não aparece em Compras/Finanças. REV-25
+iniciou ajuste mobile; ampliar QA nas
+rotas com dados autenticados, outras aparências e dispositivo real. A matriz
+local de 48 cenários para Compras/Resumo/Ajustes/Login em Feira/Cartucho/Aero,
+320–480 px, passou sem overflow após corrigir histórico de preços. REV-04 pede
+prova de rede lenta, unicidade e clique duplo em Compras; o código já bloqueia
+reenvio e mostra erro contextual.
+Aero foi reforçado com paisagem e superfícies translúcidas, e Vaporwave 95 foi
+reformulado como janelas Windows 95 sobre um pôr do sol pixelado. QA Edge em
+dez temas e quatro larguras passou; REV-25 mantém somente a prova em aparelho
+real e teclado virtual.
+REV-12: o Resumo diferencia falha parcial de dados vazios; validar erro simulado
+no runtime. REV-14: validar foco/Escape e nomes acessíveis com teclado/leitor de
+tela antes de riscar. Build e teste financeiro passaram. A migração CLOUD-001
+mantém os passos abaixo.
+FIN-UX-001: ADR-005, migração aditiva e camada inicial do painel de dívida
+foram criados; build, teste financeiro e cargo check passaram. Próximo passo:
+aplicar/validar migration + RPC em Supabase, então converter os disclosures de
+cadastro em diálogos e testar o planejamento em celular.
 
 Entrega independente concluída em 2026-11-17: site público com identidade Feira
 e prints demonstrativos em https://gustavo-abreu-ribeiro.github.io/lista-compras/.

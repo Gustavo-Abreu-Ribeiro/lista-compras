@@ -204,6 +204,10 @@ html[data-theme="cartucho"] .shortcut-icon { border-radius: 0; clip-path: polygo
 html[data-theme="cartucho"] .app-shell { grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: 14px; }
 html[data-theme="cartucho"] .sidebar.panel,
 html[data-theme="cartucho"] .main.panel { min-width: 0; border: 1px solid var(--border); }
+html[data-theme="cartucho"] .sidebar.panel,
+html[data-theme="cartucho"] .sidebar .panel-header h2,
+html[data-theme="cartucho"] .sidebar .category-choice { color: var(--ink); }
+html[data-theme="cartucho"] .home-stat-emphasis .home-card-link { color: #4dffa0; }
 html[data-theme="cartucho"] .list-item,
 html[data-theme="cartucho"] .link-item,
 html[data-theme="cartucho"] .category-list-item { border-radius: 0; border-bottom: 1px dashed var(--border); background: transparent; }
@@ -323,4 +327,51 @@ html[data-theme="cartucho"] .theme-cartucho { border-color: var(--primary); }
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-theme="cartucho"] *, html[data-theme="cartucho"] *::before, html[data-theme="cartucho"] *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+@media (max-width: 480px) {
+  html[data-theme="cartucho"] .home-stat-emphasis > strong { font-size: clamp(1.75rem, 9vw, 2.5rem); line-height: 1; }
+  html[data-theme="cartucho"] .link-list:has(.game-item) { grid-template-columns: minmax(0, 1fr); }
+  html[data-theme="cartucho"] .game-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    aspect-ratio: auto;
+    padding: 10px;
+    border: 1px solid var(--border);
+    background: #17171a;
+    clip-path: none;
+  }
+  html[data-theme="cartucho"] .game-item > a {
+    position: relative;
+    inset: auto;
+    grid-column: 1 / -1;
+    min-height: 96px;
+    padding: 24px 10px 10px;
+  }
+  html[data-theme="cartucho"] .game-item > a::before { top: 5px; left: 8px; font-size: 1.1rem; }
+  html[data-theme="cartucho"] .game-item > a strong { font-size: clamp(1.15rem, 6vw, 1.6rem); }
+  html[data-theme="cartucho"] .game-item .check-group {
+    position: static;
+    grid-column: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-self: center;
+    gap: 8px 12px;
+  }
+  html[data-theme="cartucho"] .game-item .check { min-height: 32px; font-size: 11px; }
+  html[data-theme="cartucho"] .game-item > .icon.danger {
+    position: static;
+    grid-column: 2;
+    align-self: center;
+    width: 36px;
+    height: 36px;
+  }
+  html[data-theme="cartucho"] .finance-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 360px) {
+  html[data-theme="cartucho"] .finance-kpis { grid-template-columns: minmax(0, 1fr); }
+  html[data-theme="cartucho"] .home-hero h1 { font-size: clamp(2.5rem, 13vw, 4rem); }
 }

@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import AppNavigation from "./AppNavigation"
-import { supabase } from "../../services/supabase"
-
-type GameStatus = "backlog" | "playing" | "finished"
-type Game = { id: string; name: string; url: string; status: GameStatus; updated_at: string }
+import { createGame, deleteGame, listGames, setGameStatus, type Game, type GameStatus } from "../../features/games/api"
 
 export default function GameLayout() {
   const [games, setGames] = useState<Game[]>([])
@@ -24,17 +21,12 @@ export default function GameLayout() {
     if (storedTheme) document.documentElement.dataset.theme = storedTheme
     let active = true
     async function loadGames() {
-      if (!supabase) {
-        setNotice("Configure o Supabase para carregar sua lista de jogos.")
-        return
+      try {
+        const rows = await listGames()
+        if (active) setGames(rows)
+      } catch (error) {
+        if (active) setNotice(error instanceof Error ? error.message : String(error))
       }
-      const { data, error } = await supabase.from("app_games")
-        .select("id,name,url,status,updated_at").order("updated_at", { ascending: false })
-      if (error) {
-        if (active) setNotice(error.message)
-        return
-      }
-      if (active) setGames((data ?? []) as Game[])
     }
     void loadGames()
     return () => { active = false }
@@ -72,30 +64,32 @@ export default function GameLayout() {
 
   async function addGame(event: FormEvent) {
     event.preventDefault()
-    if (!canSubmit || !supabase) return
-    const { data, error } = await supabase.from("app_games").insert({ name: name.trim(), url: url.trim(), status: "backlog" }).select("id,name,url,status,updated_at").single()
-    if (error) { setNotice(error.message); return }
-    setGames((current) => [data as Game, ...current])
-    setName("")
-    setUrl("")
-    setNotice("")
+    if (!canSubmit) return
+    try {
+      const game = await createGame(name, url)
+      setGames((current) => [game, ...current])
+      setName("")
+      setUrl("")
+      setNotice("")
+    } catch (error) { setNotice(error instanceof Error ? error.message : String(error)) }
   }
 
-  async function removeGame(id: string) {
-    if (!supabase) return
-    const { error } = await supabase.from("app_games").delete().eq("id", id)
-    if (error) { setNotice(error.message); return }
-    setGames((current) => current.filter((game) => game.id !== id))
+  async function removeGame(game: Game) {
+    if (!window.confirm(`Remover o jogo “${game.name}” da lista?`)) return
+    try {
+      await deleteGame(game.id)
+      setGames((current) => current.filter((entry) => entry.id !== game.id))
+    } catch (error) { setNotice(error instanceof Error ? error.message : String(error)) }
   }
 
   async function toggleStatus(id: string, status: GameStatus) {
-    if (!supabase) return
     const game = games.find((entry) => entry.id === id)
     if (!game) return
     const updated = { status: game.status === status ? "backlog" as const : status, updated_at: new Date().toISOString() }
-    const { error } = await supabase.from("app_games").update(updated).eq("id", id)
-    if (error) { setNotice(error.message); return }
-    setGames((current) => current.map((entry) => entry.id === id ? { ...entry, ...updated } : entry))
+    try {
+      await setGameStatus(id, updated.status, updated.updated_at)
+      setGames((current) => current.map((entry) => entry.id === id ? { ...entry, ...updated } : entry))
+    } catch (error) { setNotice(error instanceof Error ? error.message : String(error)) }
   }
 
   function scrollToChart() {
@@ -221,7 +215,8 @@ export default function GameLayout() {
                         <button
                           className="icon danger"
                           type="button"
-                          onClick={() => removeGame(game.id)}
+                          aria-label={`Remover ${game.name}`}
+                          onClick={() => removeGame(game)}
                         >
                           ✕
                         </button>

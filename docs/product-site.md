@@ -14,14 +14,15 @@ credenciais nem consulta dados de negócio. Não altera o aplicativo.
 - Downloads usam somente assets de releases públicas, nunca URLs inventadas.
 - Falha da API mantém acesso à página de releases; ausência de instalador é
   indicada por plataforma. Android usa APK, Windows usa EXE/MSI.
-- O seletor começa em Feira e troca capturas/legendas entre Feira, Cartucho e
-  Frutiger Aero nas quatro áreas. Não muda o tema do site nem do aplicativo.
+- O seletor começa em Feira e troca capturas/legendas entre Feira, Cartucho,
+  Frutiger Aero e Vaporwave 95 nas quatro áreas. Não muda o tema do site nem do
+  aplicativo.
 - Entrega: página responsiva, capturas, navegação, galeria, aparências, downloads,
   FAQ, validação no navegador, workflow e publicação verificada por HTTP.
 
 ## Estado e prova
 
-Página e quinze capturas implementadas. `npm run build` passou (aviso de chunk
+Página e capturas implementadas. `npm run build` passou (aviso de chunk
 grande preexistente). Chrome headless validou 1440, 768, 390 e 320 px sem overflow,
 imagens carregadas, abas por teclado, ampliação/fechamento, temas, FAQ e três
 estados da API de releases. Nenhum erro JavaScript no navegador.
@@ -40,6 +41,12 @@ Texto revisado para explicar recursos, instalação e limites sem slogans.
 QA local e na URL pública passou nas quatro larguras. Publicação do commit
 `0602d2e` pelo Pages 44145187004 concluiu com sucesso. Downloads reais Windows
 e Android 0.3.0 também foram conferidos no navegador, sem mock da API.
+
+Atualização preparada para a release 0.4.0: galeria com Vaporwave 95 e novas
+capturas do app em 390 px; QA mobile final cobriu dez aparências, seis rotas e
+quatro larguras. Os links de download buscam a release estável mais recente pela
+API pública do GitHub, então os novos instaladores aparecem após a publicação,
+sem URL hardcoded.
 
 Proposta de nome/símbolo **Caderno**, direção escolhida pelo usuário, em
 `docs/brand/`. Mantida fora da identidade publicada enquanto é revisada.

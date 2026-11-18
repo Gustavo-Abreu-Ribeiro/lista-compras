@@ -19,6 +19,9 @@ precisa preservar a fórmula e o histórico da anterior.
 - Integração de impacto com itens e desejos da lista.
 - Visão mobile em seções, panorama com gráfico de seis meses e cadastro manual
   de dívidas com pagamento recorrente opcional.
+- FIN-UX-001: Planejamento como painel com cadastros em diálogos e dívidas em
+  listas recolhíveis; projeção progressiva mês a mês. Ver critérios e limites em
+  [`../development/finance-planning-experience-2026-11-17.md`](../development/finance-planning-experience-2026-11-17.md).
 
 ## Fase 3 — projeções explicáveis
 
