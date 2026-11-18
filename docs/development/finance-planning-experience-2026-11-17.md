@@ -50,4 +50,8 @@ O Planejamento mostra resumo e cadastro rápido; `/finance/debts` apresenta tota
 restante, grade de checkboxes e previsão por mês. Dívidas do modelo antigo podem
 receber um plano uma única vez.
 
-`npm run build`, `npm run test:finance` e `cargo check --locked` passaram. A migração ainda não foi aplicada em Supabase; validação de RPC/pagamento, captura visual mobile e formulários em diálogo permanecem como próximos passos.
+`npm run build`, `npm run test:finance` e `cargo check --locked` passaram. Em
+2026-11-18, o usuário confirmou que aplicou as migrations 202611170002 e
+202611180001 no Supabase. Ainda faltam validação autenticada de RPC/cadastro,
+conversão de dívida antiga, pagamento e previsão, além de captura visual mobile
+e formulários em diálogo.

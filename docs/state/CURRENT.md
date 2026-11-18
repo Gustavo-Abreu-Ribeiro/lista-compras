@@ -10,25 +10,28 @@
 - Release 0.5.0 publicada: commit `4913643`, CI 44299590153, Pages
   44299590134 e workflow Windows/Android/publicação 44299608785 passaram.
   Downloads públicos e botões do site conferidos; hashes em
-  `docs/releases/0.5.0-verification.md`. Migrations remotas e prova
-  autenticada permanecem pendentes em FIN-UX-001/CLOUD-001.
+  `docs/releases/0.5.0-verification.md`. O usuário confirmou a aplicação das
+  duas migrations de dívidas em 2026-11-18; a prova autenticada permanece
+  pendente em FIN-UX-001/CLOUD-001.
 
 - FIN-UX-001 recebeu uma rota dedicada `/finance/debts`. O Planejamento mantém
   resumo e cadastro rápido; a rota mostra cada dívida recolhida, total original,
   total do plano, restante e checkboxes mensais. O restante vem das parcelas
   pendentes e cada baixa registra o gasto. Dívidas antigas sem parcelas recebem
-  um formulário de conversão. Migration aditiva implementada, ainda sem
-  aplicação remota. `npm run build` passou em 2026-11-18.
+  um formulário de conversão. Migrations aditivas implementadas e aplicação
+  remota confirmada pelo usuário, sem prova de operação autenticada.
+  `npm run build` passou em 2026-11-18.
 
 - FIX-UI-001: ícones Aero brancos com sombra, resumo financeiro com espaços
   transparentes entre blocos e controles Cartucho contidos na arte. Categorias
   de Compras no Aero permanecem em coluna; listas de jogos Aero/Cartucho/Vaporwave
   usam uma coluna até 760 px. A consulta mensal não exige `debt_id`, permitindo
-  carregar Início/Finanças no schema inicial; planos de dívida continuam
-  indisponíveis sem a migração. Build, três testes financeiros e 40 cenários Edge
+  carregar Início/Finanças no schema inicial; planos de dívida exigem as
+  migrations cuja aplicação o usuário confirmou depois. Build, três testes
+  financeiros e 40 cenários Edge
   com fixtures isoladas passaram. Evidência em
-  `docs/activity-log/2026-11-18/reported-ui-fixes.md`; sem nova release ou
-  aplicação de migração remota.
+  `docs/activity-log/2026-11-18/reported-ui-fixes.md`; sem nova release desse
+  incremento.
 
 - REL-003 concluída: release 0.4.0 publicada a partir do commit
   `490071b4de0c09c51478c02cd098963cdb708c6b`, tag anotada `v0.4.0`, CI
@@ -79,9 +82,10 @@
   parcelas indisponíveis como zero; adicionada tentativa de recarga dos preços.
   Build passou; erro simulado no runtime ainda pendente em REV-12.
 - FIN-UX-001 está em curso: a interface e as migrations do plano finito estão
-  implementadas, mas as RPCs ainda não foram aplicadas/verificadas no Supabase.
-  Até isso, cadastro e conversão ficam desabilitados para não criar dados sem
-  parcelas vinculadas.
+  implementadas; o usuário confirmou a aplicação das duas migrations no
+  Supabase. As RPCs, cadastro, conversão e pagamento ainda precisam de prova
+  autenticada. A interface continua a bloquear cadastro/conversão se detectar
+  ausência do schema para não criar dados sem parcelas vinculadas.
 
 - Frutiger Aero é uma das dez aparências, selecionável em um toque em Ajustes. Altera
   navegação, composição, superfícies e controles em todas as áreas, com paisagem

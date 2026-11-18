@@ -22,7 +22,7 @@ roadmap ou registro de atividades.
 - Scope: publicar instaladores Windows/Android 0.5.0, atualizar a descrição do site e conferir downloads públicos.
 - Boundaries: preservar assinatura Android, dados existentes e releases anteriores; migrations remotas seguem separadas.
 - Evidence: commit `4913643`, CI 44299590153, Pages 44299590134 e release 44299608785 passaram. Downloads públicos 0.5.0 conferidos por SHA-256; site ao vivo aponta para os dois assets. QA Edge isolado aprovou 52 cenários. Detalhes em `docs/releases/0.5.0-verification.md`.
-- Next step: nenhuma pendência desta publicação; migrations/validação autenticada continuam em FIN-UX-001 e CLOUD-001.
+- Next step: nenhuma pendência desta publicação; validação autenticada continua em FIN-UX-001 e CLOUD-001.
 - Updated: 2026-11-18
 
 ## FIX-UI-001 — Capturas Aero/Cartucho e carga financeira
@@ -32,7 +32,7 @@ roadmap ou registro de atividades.
 - Scope: corrigir contraste dos ícones Aero, grade do resumo financeiro e controles no cartucho; consulta mensal independente da coluna opcional de dívida e listas mobile em coluna.
 - Boundaries: sem migração remota ou alteração de cálculos; preservar dados e edição existente em Cargo.toml.
 - Evidence: build e três testes financeiros passaram; `scripts/site/verify-reported-ui.mjs` aprovou 40 cenários Edge com fixtures isoladas, incluindo sete larguras, listas em coluna em quatro aparências e carga de Início/Finanças com/sem `debt_id`. Capturas em `dist/reported-ui-qa/`.
-- Next step: nenhuma pendência deste incremento; prova autenticada e migração remota continuam em CLOUD-001/FIN-UX-001 e aparelho físico em REV-25.
+- Next step: nenhuma pendência deste incremento; prova autenticada continua em CLOUD-001/FIN-UX-001 e aparelho físico em REV-25.
 - Updated: 2026-11-18
 
 ## FIN-UX-001 — Painel de planejamento financeiro
@@ -46,8 +46,11 @@ roadmap ou registro de atividades.
 - Evidence: ADR-005 atualizado; `/finance/debts` implementa cards recolhidos,
   checkboxes e conversão de dívidas antigas. Migration 202611180001 pausa a
   recorrência antiga e cria o plano atomicamente. `npm run build` passou.
-- Next step: aplicar migrations 202611170002 e 202611180001 no Supabase e validar
-  cadastro, conversão de Mercado Pago, pagamento e projeção com sessão real.
+  Usuário confirmou em 2026-11-18 a aplicação das migrations 202611170002 e
+  202611180001 no Supabase; execução autenticada ainda não foi verificada.
+- Next step: validar cadastro, conversão de Mercado Pago, pagamento e projeção
+  com sessão real; registrar resultado em
+  `docs/development/finance-planning-experience-2026-11-17.md`.
 - Updated: 2026-11-18
 
 ## REVIEW-001 — Revisão de confiabilidade e experiência

@@ -10,17 +10,18 @@ do commit `4913643`; CI 44299590153, Pages 44299590134 e release 44299608785
 passaram. Downloads e botões públicos conferidos. REV-12/24 receberam
 incrementos, REV-25 ganhou QA da rota de dívidas, mas seguem abertos onde a
 prova exige dados autenticados ou dispositivo real. Evidência em
-`docs/releases/0.5.0-verification.md`. Próximo passo exato de FIN-UX-001:
-aplicar migrations 202611170002 e 202611180001 no projeto Supabase, converter
-uma dívida antiga e verificar pagamento e previsão com sessão real.
+`docs/releases/0.5.0-verification.md`. O usuário confirmou em 2026-11-18 a
+aplicação das migrations 202611170002 e 202611180001 no Supabase. Próximo passo
+exato de FIN-UX-001: validar cadastro, conversão de uma dívida antiga,
+pagamento e previsão com uma sessão real.
 
 **FIN-UX-001 atualizada em 2026-11-18:** Planejamento agora mantém apenas
 resumo/cadastro rápido de dívidas; gestão completa fica em `/finance/debts`,
 com cards recolhidos, total, restante derivado das parcelas, checkboxes mensais
 e previsão de seis meses. Dívidas antigas podem receber um plano; a migration
-pausa a recorrência antiga e preserva fatos realizados. Build passou. Próxima
-ação exata: aplicar `202611170002_financial_debt_installment_plans.sql` e
-`202611180001_attach_legacy_debt_plans.sql` no Supabase e validar Mercado Pago.
+pausa a recorrência antiga e preserva fatos realizados. Build passou. O usuário
+confirmou a aplicação das duas migrations no Supabase; falta validar a conversão
+de Mercado Pago e os demais fluxos com uma sessão autenticada.
 
 **FIX-UI-001 concluída em 2026-11-18:** corrigidos contraste dos ícones Aero,
 grade do resumo financeiro, controles/limites do card Cartucho e listas mobile
@@ -28,8 +29,8 @@ em coluna (categorias e jogos). Consulta mensal deixa de exigir `debt_id`, sem
 bloquear Início/Finanças no schema inicial. Build, três testes financeiros e
 40 cenários Edge com fixtures passaram. Provas em
 `docs/activity-log/2026-11-18/reported-ui-fixes.md`. Alterações locais, sem nova
-release; planos de dívida ainda dependem da migração remota. O próximo passo
-de REV-25 e as pendências CLOUD-001/FIN-UX-001 abaixo permanecem.
+release; a migração remota foi confirmada posteriormente pelo usuário. O próximo
+passo de REV-25 e as pendências CLOUD-001/FIN-UX-001 abaixo permanecem.
 
 QA Edge passou para 10 aparências × 6 rotas × 4 larguras (240 cenários), com
 fluxos de compras, jogos, dívida e login desconectado. A matriz revelou e
