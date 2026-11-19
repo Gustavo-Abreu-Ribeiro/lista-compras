@@ -1,11 +1,21 @@
 ﻿# Estado atual da Lista de Compras
 
-> Última verificação documental: 2026-11-18
+> Última verificação documental: 2026-11-19
 >
 > Este é um resumo para retomada. Código, testes e comandos reproduzíveis são a
 > prova do comportamento da revisão atual.
 
 ## Implementado
+
+- REV-18 recebeu recarga ao retomar a janela ou aba em Resumo, Compras, Jogos,
+  Finanças e Dívidas. O teste de eventos de foco e visibilidade e o build passaram
+  em 2026-11-19. A prova entre dois dispositivos autenticados segue pendente.
+
+- REV-16/17 receberam incremento local em 2026-11-19: o Resumo lê itens e links
+  em lote paginado; saldo, histórico, orçamento e listagens mensais percorrem
+  todas as páginas relevantes. O leitor rejeita resposta parcial e contagem alterada. Teste com
+  1.201 linhas e limite simulado de 200, mais `npm run build`, passaram. A
+  medição e a prova com dados autenticados ainda estão pendentes.
 
 - Release 0.5.0 publicada: commit `4913643`, CI 44299590153, Pages
   44299590134 e workflow Windows/Android/publicação 44299608785 passaram.

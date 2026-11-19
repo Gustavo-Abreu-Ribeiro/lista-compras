@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test:finance": "node src/features/finance/installmentSchedule.test.mjs",
+    "test:pages": "node --test src/services/readAllPages.test.mjs",
+    "test:resume": "node --test src/app/refreshOnResume.test.mjs",
     "preview": "vite preview",
     "site:dev": "vite website --host 127.0.0.1 --port 4173",
     "tauri": "tauri"

@@ -26,9 +26,9 @@ achado. O risco de REV-02 deve ser resolvido antes de remover qualquer SQLite.
 - [x] ~~REV-13 — Mensagem cloud no resumo~~ — erro Supabase e ação de recarga.
 - [ ] REV-14 — Acessibilidade dos modais e ícones (foco, Escape, contenção de Tab e nome do botão de remoção implementados; prova manual pendente)
 - [ ] REV-15 — Origem e qualidade do preço
-- [ ] REV-16 — Consultas em lote no resumo
-- [ ] REV-17 — Completude das agregações financeiras
-- [ ] REV-18 — Atualização entre dispositivos
+- [ ] REV-16 — Consultas em lote no resumo (implementadas; medição autenticada pendente)
+- [ ] REV-17 — Completude das agregações financeiras (paginação implementada e testada; prova no Supabase pendente)
+- [ ] REV-18 — Atualização entre dispositivos (recarga ao retomar implementada; prova com dois dispositivos pendente)
 - [x] ~~REV-19 — Adaptador Supabase para jogos~~ — componente usa `src/features/games/api.ts`.
 - [ ] REV-20 — Testes do financeiro cloud
 - [x] ~~REV-21 — CI geral por PR~~ — workflow criado para build, teste financeiro e `cargo check`; comandos equivalentes passaram localmente.
@@ -36,6 +36,34 @@ achado. O risco de REV-02 deve ser resolvido antes de remover qualquer SQLite.
 - [ ] REV-23 — CSP do Tauri
 - [ ] REV-24 — Redução da superfície de regressão do financeiro
 - [ ] REV-25 — Pente fino mobile em todas as telas e aparências (jogos e gráficos corrigidos; app real pendente)
+
+### Incremento de REV-16/17 em 2026-11-19
+
+- REV-16: o Resumo consulta itens e links por tabela, em páginas ordenadas por
+  `id`, em vez de consultar uma vez por categoria e por item. Para 20 categorias
+  e 200 itens dentro de uma página, as etapas passam de 220 consultas para duas.
+  A contagem é estrutural; ainda falta medir na sessão autenticada e conferir
+  o resultado com dados reais.
+- REV-17: saldo, histórico de seis meses, orçamento mensal e listagens mensais
+  e totais de dívidas percorrem todas as páginas relevantes de transações,
+  contas, parcelas, metas e limites. O leitor usa a contagem exata e falha se receber apenas
+  parte das linhas ou se a contagem mudar durante a leitura. Teste isolado com
+  1.201 linhas e limite simulado de 200 por resposta passou, assim como os casos
+  de resposta parcial e contagem alterada. `npm run build` passou. Ainda falta
+  prova com mais linhas que o limite efetivo do Supabase autenticado.
+
+### Incremento de REV-18 em 2026-11-19
+
+Resumo, Compras, Jogos, Finanças e Dívidas recarregam os dados ao voltar à janela
+ou aba depois de perdê-la de vista. Um retorno dispara uma recarga mesmo quando
+`focus` e `visibilitychange` chegam juntos. Em Compras, a seleção é conferida
+com as categorias e itens atualizados; remoções em outro dispositivo limpam a
+seleção inválida. Jogos e Dívidas descartam respostas antigas durante a recarga.
+`npm run test:resume` e `npm run build` passaram. Falta conferir a mudança entre
+dois dispositivos reais e a recuperação de uma falha de rede no app autenticado.
+Antes da distribuição 0.5.1, a recarga de Compras passou a descartar a resposta
+se a categoria ou o item mudar durante a consulta. A fixture Edge com consultas
+paginadas aprovou 52 cenários; a prova autenticada segue pendente.
 
 ### Prova de REV-01
 

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import AppNavigation from "./AppNavigation"
+import { useRefreshOnResume } from "../useRefreshOnResume"
 import { listCategories } from "../../features/categories/api"
-import { listItemsByCategory } from "../../features/items/api"
-import { listLinksByItem } from "../../features/itemLinks/api"
+import { listAllItems } from "../../features/items/api"
+import { listAllLinks } from "../../features/itemLinks/api"
 import { getFinancialDashboard, listFinancialInstallments } from "../../features/finance/api"
 import type { FinancialDashboard, FinancialInstallment } from "../../types/Finance"
 import type { Category } from "../../types/Category"
@@ -29,6 +30,7 @@ export default function HomeLayout() {
   const [installmentsUnavailable, setInstallmentsUnavailable] = useState(false)
   const [notice, setNotice] = useState("")
   const [reloadKey, setReloadKey] = useState(0)
+  useRefreshOnResume(() => setReloadKey((value) => value + 1))
 
   useEffect(() => {
     let active = true
@@ -63,25 +65,24 @@ export default function HomeLayout() {
         setNotice("Alguns dados não puderam ser carregados. Abra a área correspondente para tentar novamente.")
       }
 
-      const itemGroups = await Promise.allSettled(categoryRows.map((category) => listItemsByCategory(category.id)))
+      const [itemsResult, linksResult] = await Promise.allSettled([listAllItems(), listAllLinks()])
       if (!active) return
 
-      const hasItemFailures = categoryResult.status === "rejected" || itemGroups.some((result) => result.status === "rejected")
-      const items = itemGroups.flatMap((result) => result.status === "fulfilled" ? result.value : [])
+      const hasItemFailures = categoryResult.status === "rejected" || itemsResult.status === "rejected"
+      const items = itemsResult.status === "fulfilled" ? itemsResult.value : []
       setItemsUnavailable(hasItemFailures)
       setItemCount(items.length)
-      const linkGroups = await Promise.allSettled(items.map(async (item) =>
-        (await listLinksByItem(item.id)).map((link) => ({ ...link, item_name: item.name }))
-      ))
       if (active) {
-        const hasPriceFailures = hasItemFailures || linkGroups.some((result) => result.status === "rejected")
+        const hasPriceFailures = hasItemFailures || linksResult.status === "rejected"
         setPricesUnavailable(hasPriceFailures)
         if (hasItemFailures || hasPriceFailures) {
           setNotice("Alguns dados de Compras não puderam ser carregados. Os totais indisponíveis aparecem como traço; tente novamente.")
         }
         const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-        setRecentPrices(linkGroups.flatMap((result) => result.status === "fulfilled" ? result.value : [])
+        const itemNames = new Map(items.map((item) => [item.id, item.name]))
+        setRecentPrices((linksResult.status === "fulfilled" ? linksResult.value : [])
           .filter((link) => link.price !== null && new Date(link.created_at).getTime() >= cutoff)
+          .map((link) => ({ ...link, item_name: itemNames.get(link.item_id) ?? "Item removido" }))
           .sort((a, b) => b.created_at.localeCompare(a.created_at))
           .slice(0, 4))
         setLoading(false)

@@ -5,6 +5,19 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 ## Atividade Atual: CLOUD-001 / REVIEW-001 (pendências pós-release)
 
+**REV-18, 2026-11-19:** Resumo, Compras, Jogos, Finanças e Dívidas recarregam
+ao retomar foco/visibilidade. `npm run test:resume` e build passaram. Próxima
+prova exata em `docs/development/project-review-2026-11-17.md`: alterar dados
+em um dispositivo, voltar ao app em outro e conferir atualização, seleção e
+falha de rede. Nenhum dado remoto foi alterado nesta sessão.
+
+**REV-16/17, 2026-11-19:** Resumo consulta itens/links em lote paginado;
+saldo, histórico e orçamento mensal leem todas as páginas de transações.
+Teste isolado com 1.201 linhas, limite simulado de 200, resposta parcial e
+contagem alterada passou; build passou. Próximo passo exato em
+`docs/development/project-review-2026-11-17.md`: medir requisições do Resumo
+e verificar totais acima do limite efetivo do Supabase em sessão autenticada.
+
 **REL-004 concluída em 2026-11-18:** 0.5.0 Windows/Android publicada a partir
 do commit `4913643`; CI 44299590153, Pages 44299590134 e release 44299608785
 passaram. Downloads e botões públicos conferidos. REV-12/24 receberam

@@ -1,6 +1,7 @@
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import AppNavigation from "./AppNavigation"
+import { useRefreshOnResume } from "../useRefreshOnResume"
 import {
   createFinancialDebtPlan, listFinancialDebtInstallments, listFinancialDebts,
   markFinancialInstallmentPaid, setFinancialDebtPlan,
@@ -31,24 +32,33 @@ export default function FinanceDebtsLayout() {
   const [saving, setSaving] = useState(false)
   const [newDebt, setNewDebt] = useState({ name: "", total: "", ...emptyPlan() })
   const [legacyPlans, setLegacyPlans] = useState<Record<number, PlanForm>>({})
+  const loadVersion = useRef(0)
 
   async function load() {
+    const version = ++loadVersion.current
     try {
       const debtRows = await listFinancialDebts()
-      setDebts(debtRows)
+      let installmentRows: FinancialDebtInstallment[] | null = null
       try {
-        setInstallments(await listFinancialDebtInstallments())
-        setPlansUnavailable(false)
+        installmentRows = await listFinancialDebtInstallments()
       } catch {
-        setInstallments([])
-        setPlansUnavailable(true)
+        // O schema inicial ainda nao tem planos; a tela sinaliza a ausencia.
       }
+      if (version !== loadVersion.current) return
+      setDebts(debtRows)
+      setInstallments(installmentRows ?? [])
+      setPlansUnavailable(installmentRows === null)
     } catch (error) {
+      if (version !== loadVersion.current) return
       setNotice(error instanceof Error ? error.message : String(error))
     }
   }
 
-  useEffect(() => { void load() }, [])
+  useRefreshOnResume(() => { void load() })
+  useEffect(() => {
+    void load()
+    return () => { loadVersion.current += 1 }
+  }, [])
 
   async function submitNewDebt(event: FormEvent) {
     event.preventDefault()

@@ -1,6 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core"
 import { supabase } from "../../services/supabase"
 import { ItemLink } from "../../types/ItemLink"
+import { readAllPages } from "../../services/readAllPages"
 
 function client() {
   if (!supabase) throw new Error("Configure o Supabase para usar os dados na nuvem.")
@@ -13,6 +14,12 @@ export async function listLinksByItem(itemId: number): Promise<ItemLink[]> {
     .eq("item_id", itemId).order("store_name")
   if (error) throw error
   return (data ?? []) as ItemLink[]
+}
+
+export function listAllLinks(): Promise<ItemLink[]> {
+  return readAllPages<ItemLink>((from, to) => client().from("app_item_links")
+    .select("id,uuid,item_id,store_name,url,price,created_at,last_checked_at", { count: "exact" })
+    .order("id").range(from, to))
 }
 
 export async function createLink(itemId: number, storeName: string, url: string, price?: number): Promise<void> {

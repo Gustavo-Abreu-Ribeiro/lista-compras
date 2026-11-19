@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import AppNavigation from "./AppNavigation"
+import { useRefreshOnResume } from "../useRefreshOnResume"
 import {
   createFinancialAccount, createFinancialCategory, createFinancialGoal,
   createFinancialInstallment, createFinancialTransaction, getFinancialDashboard,
@@ -81,6 +82,7 @@ export default function FinanceLayout() {
       setNotice(String(error))
     }
   }
+  useRefreshOnResume(() => { void load() })
   useEffect(() => {
     latestMonth.current = month
     setDashboard(null); setTransactions([]); setInstallments([]); setBudgets([]); setHistory([])

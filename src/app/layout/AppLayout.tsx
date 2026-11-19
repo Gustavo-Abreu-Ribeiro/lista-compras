@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { FormEvent, KeyboardEvent } from "react"
 import AppNavigation from "./AppNavigation"
+import { useRefreshOnResume } from "../useRefreshOnResume"
 import {
   listCategories,
   createCategory,
@@ -120,6 +121,39 @@ export default function AppLayout() {
     const loadedCategories = await listCategories()
     setCategories(loadedCategories)
 
+  }
+
+  async function refreshShoppingData() {
+    const startingItemsRequest = itemsRequest.current
+    const startingLinksRequest = linksRequest.current
+    const categoryRows = await listCategories()
+    if (startingItemsRequest !== itemsRequest.current || startingLinksRequest !== linksRequest.current) return
+    setCategories(categoryRows)
+    if (!selectedCategory) { setDataError(""); return }
+    const currentCategory = categoryRows.find((row) => row.id === selectedCategory.id)
+    if (!currentCategory) {
+      itemsRequest.current += 1
+      linksRequest.current += 1
+      setSelectedCategory(null); setSelectedItem(null)
+      setItems([]); setLinks([]); setPriceHistory([])
+      setDataError("")
+      return
+    }
+    setSelectedCategory(currentCategory)
+    const itemRequest = ++itemsRequest.current
+    const itemRows = await listItemsByCategory(selectedCategory.id)
+    if (itemRequest !== itemsRequest.current || startingLinksRequest !== linksRequest.current) return
+    setItems(itemRows)
+    if (!selectedItem) { setDataError(""); return }
+    const currentItem = itemRows.find((row) => row.id === selectedItem.id)
+    if (!currentItem) {
+      linksRequest.current += 1
+      setSelectedItem(null); setLinks([]); setPriceHistory([])
+      setDataError("")
+      return
+    }
+    setSelectedItem(currentItem)
+    await loadLinks(selectedItem.id)
   }
 
   async function addCategory() {
@@ -346,6 +380,12 @@ export default function AppLayout() {
       setDataError(error instanceof Error ? error.message : String(error))
     })
   }, [])
+
+  useRefreshOnResume(() => {
+    void refreshShoppingData().catch((error) => {
+      setDataError(error instanceof Error ? error.message : String(error))
+    })
+  })
 
   const selectedItemId = selectedItem?.id
   useEffect(() => {

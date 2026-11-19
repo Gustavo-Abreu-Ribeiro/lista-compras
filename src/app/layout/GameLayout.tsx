@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import AppNavigation from "./AppNavigation"
+import { useRefreshOnResume } from "../useRefreshOnResume"
 import { createGame, deleteGame, listGames, setGameStatus, type Game, type GameStatus } from "../../features/games/api"
 
 export default function GameLayout() {
@@ -9,7 +10,10 @@ export default function GameLayout() {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(15)
   const [notice, setNotice] = useState("")
+  const [reloadKey, setReloadKey] = useState(0)
   const chartRef = useRef<HTMLDivElement | null>(null)
+  const loadVersion = useRef(0)
+  useRefreshOnResume(() => setReloadKey((value) => value + 1))
 
   function truncateText(text: string, maxLength: number) {
     if (text.length <= maxLength) return text
@@ -20,17 +24,18 @@ export default function GameLayout() {
     const storedTheme = localStorage.getItem("lista-compras:theme")
     if (storedTheme) document.documentElement.dataset.theme = storedTheme
     let active = true
+    const version = ++loadVersion.current
     async function loadGames() {
       try {
         const rows = await listGames()
-        if (active) setGames(rows)
+        if (active && version === loadVersion.current) { setGames(rows); setNotice("") }
       } catch (error) {
-        if (active) setNotice(error instanceof Error ? error.message : String(error))
+        if (active && version === loadVersion.current) setNotice(error instanceof Error ? error.message : String(error))
       }
     }
     void loadGames()
-    return () => { active = false }
-  }, [])
+    return () => { active = false; loadVersion.current += 1 }
+  }, [reloadKey])
 
   useEffect(() => {
     function updatePerPage() {
@@ -67,6 +72,7 @@ export default function GameLayout() {
     if (!canSubmit) return
     try {
       const game = await createGame(name, url)
+      loadVersion.current += 1
       setGames((current) => [game, ...current])
       setName("")
       setUrl("")
@@ -78,6 +84,7 @@ export default function GameLayout() {
     if (!window.confirm(`Remover o jogo “${game.name}” da lista?`)) return
     try {
       await deleteGame(game.id)
+      loadVersion.current += 1
       setGames((current) => current.filter((entry) => entry.id !== game.id))
     } catch (error) { setNotice(error instanceof Error ? error.message : String(error)) }
   }
@@ -88,6 +95,7 @@ export default function GameLayout() {
     const updated = { status: game.status === status ? "backlog" as const : status, updated_at: new Date().toISOString() }
     try {
       await setGameStatus(id, updated.status, updated.updated_at)
+      loadVersion.current += 1
       setGames((current) => current.map((entry) => entry.id === id ? { ...entry, ...updated } : entry))
     } catch (error) { setNotice(error instanceof Error ? error.message : String(error)) }
   }

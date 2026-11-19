@@ -28,5 +28,7 @@ jobs:
           workspaces: src-tauri -> target
       - run: npm ci
       - run: npm run test:finance
+      - run: npm run test:pages
+      - run: npm run test:resume
       - run: npm run build
       - run: cargo check --manifest-path src-tauri/Cargo.toml --locked

@@ -1,5 +1,6 @@
 import { supabase } from "../../services/supabase"
 import { installmentSchedule } from "./installmentSchedule"
+import { readAllPages } from "../../services/readAllPages"
 import type {
   FinancialAccount, FinancialBudget, FinancialCategory, FinancialDashboard,
   FinancialDebt, FinancialDebtInstallment, FinancialGoal, FinancialHistoryPoint, FinancialInstallment,
@@ -58,18 +59,19 @@ async function materializeRecurrences(month: string) {
 export async function listFinancialTransactions(month: string): Promise<FinancialTransaction[]> {
   await materializeRecurrences(month)
   const { start, end } = monthBounds(month)
-  return read(client().from("app_financial_transactions")
-    .select("id,kind,amount_cents,occurred_on,description,category_id,account_id,status,recurrence_id,installment_id")
-    .gte("occurred_on", start).lt("occurred_on", end).order("occurred_on", { ascending: false }).order("id", { ascending: false }))
+  return readAllPages<FinancialTransaction>((from, to) => client().from("app_financial_transactions")
+    .select("id,kind,amount_cents,occurred_on,description,category_id,account_id,status,recurrence_id,installment_id", { count: "exact" })
+    .gte("occurred_on", start).lt("occurred_on", end).order("occurred_on", { ascending: false }).order("id", { ascending: false }).range(from, to))
 }
 
 export async function listFinancialHistory(month: string): Promise<FinancialHistoryPoint[]> {
   const [year, monthIndex] = month.split("-").map(Number)
   const start = new Date(Date.UTC(year, monthIndex - 5, 1))
   const end = new Date(Date.UTC(year, monthIndex + 1, 1))
-  const rows = await read<Array<Pick<FinancialTransaction, "kind" | "amount_cents" | "occurred_on" | "status">>>(
-    client().from("app_financial_transactions").select("kind,amount_cents,occurred_on,status")
-      .eq("status", "posted").gte("occurred_on", start.toISOString().slice(0, 10)).lt("occurred_on", end.toISOString().slice(0, 10)),
+  const rows = await readAllPages<Pick<FinancialTransaction, "kind" | "amount_cents" | "occurred_on" | "status">>((from, to) =>
+    client().from("app_financial_transactions").select("kind,amount_cents,occurred_on,status", { count: "exact" })
+      .eq("status", "posted").gte("occurred_on", start.toISOString().slice(0, 10)).lt("occurred_on", end.toISOString().slice(0, 10))
+      .order("id").range(from, to),
   )
   const totals = new Map<string, FinancialHistoryPoint>()
   for (let offset = 0; offset < 6; offset++) {
@@ -118,13 +120,14 @@ export async function listFinancialInstallments(month: string): Promise<Financia
   const { start, end } = monthBounds(month)
   // A consulta mensal também atende contas que ainda usam o schema inicial.
   // O vínculo com dívidas é consultado separadamente pelo planejamento.
-  return read(client().from("app_financial_installments").select("id,description,amount_cents,due_on,state")
-    .gte("due_on", start).lt("due_on", end).order("due_on"))
+  return readAllPages<FinancialInstallment>((from, to) => client().from("app_financial_installments")
+    .select("id,description,amount_cents,due_on,state", { count: "exact" })
+    .gte("due_on", start).lt("due_on", end).order("due_on").order("id").range(from, to))
 }
-export const listFinancialDebtInstallments = () => read<FinancialDebtInstallment[]>(
+export const listFinancialDebtInstallments = () => readAllPages<FinancialDebtInstallment>((from, to) =>
   client().from("app_financial_installments")
-    .select("id,debt_id,description,amount_cents,due_on,state")
-    .not("debt_id", "is", null).order("due_on"),
+    .select("id,debt_id,description,amount_cents,due_on,state", { count: "exact" })
+    .not("debt_id", "is", null).order("due_on").order("id").range(from, to),
 )
 export async function createFinancialDebtPlan(name: string, balanceCents: number, installmentCount: number, installmentCents: number, firstDueOn: string): Promise<void> {
   await read(client().rpc("app_create_financial_debt_plan", {
@@ -154,12 +157,12 @@ export async function getFinancialDashboard(month: string): Promise<FinancialDas
   const api = client()
   const { start, end } = monthBounds(month)
   const [accounts, transactions, monthTransactions, installments, goals, budgets] = await Promise.all([
-    read<FinancialAccount[]>(api.from("app_financial_accounts").select("id,name,account_type,opening_balance_cents")),
-    read<Array<Pick<FinancialTransaction, "kind" | "amount_cents" | "status">>>(api.from("app_financial_transactions").select("kind,amount_cents,status").eq("status", "posted")),
-    read<FinancialTransaction[]>(api.from("app_financial_transactions").select("id,kind,amount_cents,occurred_on,description,category_id,account_id,status").gte("occurred_on", start).lt("occurred_on", end)),
-    read<Array<FinancialInstallment & { category_id: number | null }>>(api.from("app_financial_installments").select("id,description,amount_cents,due_on,state,category_id").gte("due_on", start).lt("due_on", end)),
-    read<FinancialGoal[]>(api.from("app_financial_goals").select("id,name,target_cents,saved_cents,due_on,priority,contribution_min_cents,contribution_ideal_cents")),
-    read<Array<Pick<FinancialBudget, "category_id" | "limit_cents">>>(api.from("app_financial_budgets").select("category_id,limit_cents").eq("month", month)),
+    readAllPages<FinancialAccount>((from, to) => api.from("app_financial_accounts").select("id,name,account_type,opening_balance_cents", { count: "exact" }).order("id").range(from, to)),
+    readAllPages<Pick<FinancialTransaction, "kind" | "amount_cents" | "status">>((from, to) => api.from("app_financial_transactions").select("kind,amount_cents,status", { count: "exact" }).eq("status", "posted").order("id").range(from, to)),
+    readAllPages<FinancialTransaction>((from, to) => api.from("app_financial_transactions").select("id,kind,amount_cents,occurred_on,description,category_id,account_id,status", { count: "exact" }).gte("occurred_on", start).lt("occurred_on", end).order("id").range(from, to)),
+    readAllPages<FinancialInstallment & { category_id: number | null }>((from, to) => api.from("app_financial_installments").select("id,description,amount_cents,due_on,state,category_id", { count: "exact" }).gte("due_on", start).lt("due_on", end).order("id").range(from, to)),
+    readAllPages<FinancialGoal>((from, to) => api.from("app_financial_goals").select("id,name,target_cents,saved_cents,due_on,priority,contribution_min_cents,contribution_ideal_cents", { count: "exact" }).order("id").range(from, to)),
+    readAllPages<Pick<FinancialBudget, "category_id" | "limit_cents">>((from, to) => api.from("app_financial_budgets").select("category_id,limit_cents", { count: "exact" }).eq("month", month).order("id").range(from, to)),
   ])
   const currentBalance = accounts.reduce((sum, account) => sum + account.opening_balance_cents, 0)
     + transactions.reduce((sum, transaction) => sum + (transaction.kind === "income" ? transaction.amount_cents : -transaction.amount_cents), 0)
@@ -192,9 +195,9 @@ export async function listFinancialBudgets(month: string): Promise<FinancialBudg
   const api = client()
   const { start, end } = monthBounds(month)
   const [budgets, transactions, installments] = await Promise.all([
-    read<Array<Pick<FinancialBudget, "id" | "category_id" | "month" | "limit_cents">>>(api.from("app_financial_budgets").select("id,category_id,month,limit_cents").eq("month", month)),
-    read<FinancialTransaction[]>(api.from("app_financial_transactions").select("kind,amount_cents,occurred_on,category_id,status").gte("occurred_on", start).lt("occurred_on", end)),
-    read<Array<FinancialInstallment & { category_id: number | null }>>(api.from("app_financial_installments").select("id,description,amount_cents,due_on,state,category_id").gte("due_on", start).lt("due_on", end)),
+    readAllPages<Pick<FinancialBudget, "id" | "category_id" | "month" | "limit_cents">>((from, to) => api.from("app_financial_budgets").select("id,category_id,month,limit_cents", { count: "exact" }).eq("month", month).order("id").range(from, to)),
+    readAllPages<FinancialTransaction>((from, to) => api.from("app_financial_transactions").select("kind,amount_cents,occurred_on,category_id,status", { count: "exact" }).gte("occurred_on", start).lt("occurred_on", end).order("id").range(from, to)),
+    readAllPages<FinancialInstallment & { category_id: number | null }>((from, to) => api.from("app_financial_installments").select("id,description,amount_cents,due_on,state,category_id", { count: "exact" }).gte("due_on", start).lt("due_on", end).order("id").range(from, to)),
   ])
   return budgets.map((budget) => {
     const related = transactions.filter((row) => row.category_id === budget.category_id && row.kind === "expense")
