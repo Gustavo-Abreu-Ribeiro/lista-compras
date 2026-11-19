@@ -10,3 +10,7 @@ Prova local: `npm run build` passou. O verificador Edge em
 roda lateral, teclado, galeria, 16 combinações tema/tela, estados dos downloads
 e movimento reduzido. Capturas em `dist/site-qa/` foram inspecionadas; uma
 lacuna causada pelo efeito de entrada foi corrigida e a matriz repetida.
+
+Publicação: commit `94aa9af`, workflow Pages 44518148375 com sucesso.
+HTTP 200 e conteúdo/CSS novos na URL pública; Edge confirmou os downloads
+Windows e Android da release 0.5.0.

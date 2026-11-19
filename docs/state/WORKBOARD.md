@@ -17,12 +17,12 @@ roadmap ou registro de atividades.
 
 ## SITE-003 — Repaginar a apresentação pública
 
-- Status: in progress
+- Status: complete
 - Owner/lane: Codex
 - Scope: dar mais personalidade à página de apresentação com nova abertura, ritmo visual, navegação de progresso e movimento discreto.
 - Boundaries: preservar identidade Feira, capturas reais com dados fictícios, acessibilidade, links de releases e hospedagem GitHub Pages; não alterar o app ou dados de negócio.
-- Evidence: `website/` repaginado; build e QA Edge em cinco larguras passaram, incluindo roda lateral, teclado, galeria, downloads e movimento reduzido. Capturas em `dist/site-qa/` inspecionadas.
-- Next step: publicar pelo workflow GitHub Pages e conferir a URL pública.
+- Evidence: commit `94aa9af`, Pages 44518148375 concluído; URL pública mostra a nova abertura e CSS. Build e QA Edge em cinco larguras passaram, incluindo roda lateral, teclado, galeria, downloads e movimento reduzido. Windows/Android 0.5.0 conferidos no navegador público.
+- Next step: nenhuma pendência desta entrega.
 - Updated: 2026-11-19
 
 ## REL-004 — Publicar 0.5.0 com gestão de dívidas

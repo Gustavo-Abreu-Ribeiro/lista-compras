@@ -21,7 +21,9 @@ Implementação local em 2026-11-19: abertura em verde profundo, cartões das tr
 entradas suaves quando as seções aparecem. O conteúdo é visível mesmo antes da
 animação. Edge headless aprovou 1600, 1440, 768, 390 e 320 px sem overflow,
 além de teclado, galeria, 16 combinações tema/tela, downloads presentes/ausentes,
-falha da API e movimento reduzido. Publicação e URL pública ainda pendentes.
+falha da API e movimento reduzido. Commit `94aa9af` publicado pelo Pages
+44518148375; a URL pública retornou HTTP 200, exibiu a nova abertura com CSS
+aplicado e resolveu os downloads reais Windows/Android 0.5.0 no navegador.
 
 ## Contrato e roadmap
 

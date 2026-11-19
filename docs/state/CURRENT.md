@@ -109,6 +109,9 @@
   `docs/releases/0.2.0-verification.md`. CRUD/RLS e dispositivos reais continuam
   com as pendências abaixo.
 
+- SITE-003 publicado em 2026-11-19: abertura repaginada, cartões das três áreas,
+  movimento discreto e roda lateral de progresso. Pages 44518148375 passou;
+  QA Edge em cinco larguras e downloads reais 0.5.0 na URL pública passaram.
 - Site de apresentação independente em `website/`, com identidade padrão Feira,
   capturas reais dos componentes com dados fictícios, galeria acessível com
   Feira/Cartucho/Frutiger Aero/Vaporwave 95, comparação de temas, recursos, FAQ e consulta de instaladores nas releases

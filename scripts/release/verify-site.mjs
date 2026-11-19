@@ -11,6 +11,8 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const response = await page.goto('https://gustavo-abreu-ribeiro.github.io/lista-compras/');
   assert.equal(response.status(), 200);
+  await page.getByRole('heading', { name: 'A vida não cabe numa lista só.' }).waitFor();
+  assert.equal(await page.locator('.hero').evaluate(element => getComputedStyle(element).borderRadius), '24px');
   for (const [platform, name] of [['windows', 'Lista-de-Compras-Windows-x64-setup.exe'], ['android', 'Lista-de-Compras-Android-arm64.apk']]) {
     const link = page.locator(`#${platform}-download`);
     await link.filter({ hasText: 'Baixar para' }).waitFor();
