@@ -5,6 +5,11 @@ Página estática de apresentação do aplicativo Lista de Compras. `index.html`
 negócio ou credenciais. Paleta padrão Feira copiada dos tokens finais de
 `src/app.css`; fontes Alegreya, Karla e IBM Plex Mono.
 
+A apresentação usa abertura em verde profundo, cartões das três áreas e uma
+roda lateral de progresso em telas largas. A rolagem continua nativa; entradas
+animadas respeitam a preferência por movimento reduzido. O conteúdo permanece
+visível antes de qualquer animação.
+
 ## Desenvolvimento e publicação
 
 ```sh
@@ -33,7 +38,8 @@ node scripts/site/verify.mjs <caminho-ou-URL-do-modulo-playwright-core>
 ```
 
 O verificador usa a prévia em `http://127.0.0.1:4173`, grava evidências em
-`dist/site-qa/` (ignorado) e cobre desktop/mobile, imagens, galeria, teclado,
+`dist/site-qa/` (ignorado) e cobre 1600, 1440, 768, 390 e 320 px, a roda
+lateral, movimento reduzido, imagens, galeria, teclado,
 as 12 combinações de tema/área (Feira, Cartucho e Frutiger Aero), ampliação das
 três capturas móveis, FAQ e estados dos downloads. Não adiciona dependências ao app.
 

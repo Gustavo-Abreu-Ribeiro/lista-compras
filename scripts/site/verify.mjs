@@ -12,7 +12,7 @@ await context.route("https://api.github.com/**", (route) =>
   route.fulfill({ json: [] }),
 );
 await mkdir("dist/site-qa", { recursive: true });
-for (const width of [1440, 768, 390, 320]) {
+for (const width of [1600, 1440, 768, 390, 320]) {
   await page.setViewportSize({ width, height: 960 });
   const response = await page.goto(base);
   assert.equal(response.status(), 200);
@@ -28,6 +28,13 @@ for (const width of [1440, 768, 390, 320]) {
     `Horizontal overflow at ${width}px`,
   );
   assert(await page.locator("h1").isVisible());
+  if (width === 1600) {
+    assert(await page.locator(".journey-nav").isVisible());
+    await page.locator("#recursos").scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('[data-journey="recursos"]')?.getAttribute("aria-current") === "location");
+  } else {
+    assert(!(await page.locator(".journey-nav").isVisible()));
+  }
   for (const image of await page.locator("img").all()) {
     if (!(await image.isVisible())) continue;
     await image.scrollIntoViewIfNeeded();
@@ -95,7 +102,7 @@ for (const width of [1440, 768, 390, 320]) {
     await page
       .locator(".theme-examples article")
       .nth(index)
-      .getByRole("button", { name: "Ver no celular ↗" })
+      .getByRole("button", { name: "Ver no celular" })
       .click();
     assert.equal(
       await page.locator("#expanded-image").getAttribute("src"),
@@ -122,6 +129,11 @@ for (const width of [1440, 768, 390, 320]) {
     fullPage: true,
   });
 }
+await page.emulateMedia({ reducedMotion: "reduce" });
+await page.reload();
+assert.equal(await page.locator(".reveal").count(), 0);
+assert(await page.getByRole("heading", { name: "O que dá para fazer." }).isVisible());
+await page.emulateMedia({ reducedMotion: "no-preference" });
 await context.unroute("https://api.github.com/**");
 await context.route("https://api.github.com/**", (route) =>
   route.fulfill({
@@ -177,5 +189,5 @@ assert(
 assert.deepEqual(errors, []);
 await browser.close();
 console.log(
-  "PASS: 4 widths; all 16 theme/route combinations; desktop and mobile image dialogs; keyboard tabs; FAQ; downloads present/absent/API failure; no browser errors.",
+  "PASS: 5 widths; section wheel; reduced motion; all 16 theme/route combinations; desktop and mobile image dialogs; keyboard tabs; FAQ; downloads present/absent/API failure; no browser errors.",
 );

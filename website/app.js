@@ -155,11 +155,11 @@ async function loadDownloads() {
         available++;
         info.textContent = `${release.tag_name} · ${asset.name} · ${(asset.size / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`;
         link.href = asset.browser_download_url;
-        link.textContent = `Baixar para ${platform === "windows" ? "Windows" : "Android"} ↓`;
+        link.textContent = `Baixar para ${platform === "windows" ? "Windows" : "Android"}`;
       } else {
         info.textContent = "Nenhum instalador publicado para esta plataforma.";
         link.href = releasesUrl;
-        link.textContent = "Acompanhar releases ↗";
+        link.textContent = "Acompanhar releases";
       }
     }
     status.textContent = available
@@ -175,3 +175,50 @@ async function loadDownloads() {
   }
 }
 loadDownloads();
+
+// A rolagem continua nativa; a roda apenas mostra onde a pessoa esta.
+const journeyLinks = [...document.querySelectorAll("[data-journey]")];
+const journeySections = journeyLinks.map((link) => document.getElementById(link.dataset.journey));
+const journeyProgress = document.querySelector(".wheel-progress");
+const journeyPosition = document.querySelector("#journey-position");
+const wheelLength = 2 * Math.PI * 26;
+journeyProgress.style.strokeDasharray = String(wheelLength);
+let scrollFrame = 0;
+function updateJourney() {
+  scrollFrame = 0;
+  const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+  journeyProgress.style.strokeDashoffset = String(wheelLength * (1 - progress));
+  let current = 0;
+  journeySections.forEach((section, index) => {
+    if (section.getBoundingClientRect().top <= innerHeight * 0.38) current = index;
+  });
+  journeyPosition.textContent = String(current + 1).padStart(2, "0");
+  journeyLinks.forEach((link, index) => {
+    if (index === current) link.setAttribute("aria-current", "location");
+    else link.removeAttribute("aria-current");
+  });
+}
+function scheduleJourneyUpdate() {
+  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateJourney);
+}
+window.addEventListener("scroll", scheduleJourneyUpdate, { passive: true });
+window.addEventListener("resize", scheduleJourneyUpdate);
+window.addEventListener("load", scheduleJourneyUpdate);
+scheduleJourneyUpdate();
+
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+if (!reduceMotion.matches && "IntersectionObserver" in window) {
+  const revealTargets = document.querySelectorAll(
+    ".hero-copy, .hero-visual, .section-heading, .features article, .gallery-layout, .how > *, .theme-examples article, .downloads article",
+  );
+  revealTargets.forEach((element) => element.classList.add("reveal"));
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      revealObserver.unobserve(entry.target);
+    });
+  }, { rootMargin: "0px 0px -7% 0px", threshold: 0.08 });
+  revealTargets.forEach((element) => revealObserver.observe(element));
+}

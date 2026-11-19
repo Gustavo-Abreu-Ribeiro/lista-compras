@@ -7,6 +7,22 @@ verde escuro, terracota e as fontes Alegreya, Karla e IBM Plex Mono.
 Site estático independente em `website/`, publicado no GitHub Pages. Não recebe
 credenciais nem consulta dados de negócio. Não altera o aplicativo.
 
+## Direção SITE-003
+
+A apresentação deve conduzir da ideia de caderneta pessoal às três áreas reais
+do app e, por fim, à exploração das telas e aos downloads. Abertura com contraste
+mais forte dentro da paleta Feira, navegação lateral que indica a posição nas
+seções em telas largas e transições de entrada discretas. Rolagem permanece
+nativa; âncoras, galeria e downloads funcionam sem animação. Teclado e preferência
+por movimento reduzido têm o mesmo acesso ao conteúdo.
+
+Implementação local em 2026-11-19: abertura em verde profundo, cartões das três
+áreas, navegação lateral com indicador circular de posição em telas largas e
+entradas suaves quando as seções aparecem. O conteúdo é visível mesmo antes da
+animação. Edge headless aprovou 1600, 1440, 768, 390 e 320 px sem overflow,
+além de teclado, galeria, 16 combinações tema/tela, downloads presentes/ausentes,
+falha da API e movimento reduzido. Publicação e URL pública ainda pendentes.
+
 ## Contrato e roadmap
 
 - Prints são capturas dos componentes reais com fixtures interceptadas apenas
