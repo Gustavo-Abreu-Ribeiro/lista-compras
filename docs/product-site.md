@@ -25,6 +25,9 @@ falha da API e movimento reduzido. Commit `94aa9af` publicado pelo Pages
 44518148375; a URL pública retornou HTTP 200, exibiu a nova abertura com CSS
 aplicado e resolveu os downloads reais Windows/Android 0.5.0 no navegador.
 
+Redeploy em 2026-11-19 pelo Pages 44521046938: o navegador público confirmou
+os links reais Windows e Android 0.5.1 após a nova release.
+
 ## Contrato e roadmap
 
 - Prints são capturas dos componentes reais com fixtures interceptadas apenas

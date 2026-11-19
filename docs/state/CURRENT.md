@@ -7,6 +7,12 @@
 
 ## Implementado
 
+- Release 0.5.1 publicada em 2026-11-19: commit de build `fc4f687`, CI
+  44519690078, workflow Windows/Android 44520011498 e Pages 44521046938
+  passaram. Instaladores e hashes públicos, além dos links reais no site,
+  conferidos em `docs/releases/0.5.1-verification.md`. Provas autenticadas e
+  dispositivo real continuam pendentes.
+
 - REV-18 recebeu recarga ao retomar a janela ou aba em Resumo, Compras, Jogos,
   Finanças e Dívidas. O teste de eventos de foco e visibilidade e o build passaram
   em 2026-11-19. A prova entre dois dispositivos autenticados segue pendente.

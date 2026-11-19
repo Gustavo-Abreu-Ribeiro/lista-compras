@@ -5,6 +5,12 @@ curto do repositório; código, testes e Git continuam sendo a prova final.
 
 ## Atividade Atual: CLOUD-001 / REVIEW-001 (pendências pós-release)
 
+**REL-005 concluída em 2026-11-19:** 0.5.1 Windows/Android publicada do commit
+`fc4f687`; CI 44519690078, release 44520011498 e Pages 44521046938 passaram.
+Hashes dos instaladores e downloads reais no site foram conferidos. Prova em
+`docs/releases/0.5.1-verification.md`. As pendências autenticadas e de aparelho
+real abaixo não foram encerradas por esta publicação.
+
 **REV-18, 2026-11-19:** Resumo, Compras, Jogos, Finanças e Dívidas recarregam
 ao retomar foco/visibilidade. `npm run test:resume` e build passaram. Próxima
 prova exata em `docs/development/project-review-2026-11-17.md`: alterar dados
@@ -54,9 +60,8 @@ foram publicados. Commit 490071b, CI 44220414797, release 44220473964, Pages
 
 PRÓXIMO PASSO: concluir REV-25 em `docs/development/project-review-2026-11-17.md`
 com teste em um aparelho real e teclado virtual, registrando larguras/fluxos e
-capturas que provem ausência de corte/overflow. A migration financeira não foi
-aplicada ao Supabase e o app informa quando os planos de dívida estão
-indisponíveis.
+capturas que provem ausência de corte/overflow. O usuário confirmou a aplicação
+das migrations financeiras em 2026-11-18; falta provar os fluxos autenticados.
 
 **SITE-002 concluída em 2026-11-17:** site com previews Feira/Cartucho/Aero em
 quatro áreas e no celular; texto reescrito de forma descritiva. Commit 0602d2e,

@@ -17,12 +17,12 @@ roadmap ou registro de atividades.
 
 ## REL-005 — Publicar 0.5.1 e atualizar downloads do site
 
-- Status: in progress
+- Status: complete
 - Owner/lane: Codex
 - Scope: publicar Windows x64 e Android ARM64 com as correções de paginação e recarga, e redeployar o site para expor a versão.
 - Boundaries: manter assinatura Android, configuração Supabase publicável, dados remotos e SQLite legados; sem nova migration.
-- Evidence: commit de correção `7e484dc`; build, testes financeiros, paginação, retorno e `cargo check --locked` passaram; QA Edge isolado aprovou 52 cenários.
-- Next step: conferir versão e locks, publicar commit de release, executar workflow Windows/Android, verificar hashes e links 0.5.1 no site público.
+- Evidence: correções `7e484dc`, build `fc4f687`, CI 44519690078, release 44520011498 e Pages 44521046938 passaram. Hashes dos instaladores públicos e links 0.5.1 no site conferidos. Provas em `docs/releases/0.5.1-verification.md`.
+- Next step: nenhuma pendência desta publicação; provas autenticadas e aparelho real permanecem em REVIEW-001/CLOUD-001.
 - Updated: 2026-11-19
 
 ## SITE-003 — Repaginar a apresentação pública
