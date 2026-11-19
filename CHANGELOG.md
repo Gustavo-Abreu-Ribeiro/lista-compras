@@ -5,6 +5,16 @@ e [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-19
+
+### Fixed
+
+- O Resumo consulta itens e links em lote; leituras financeiras percorrem todas
+  as páginas antes de calcular saldos, histórico, orçamento e dívidas.
+- Resumo, Compras, Jogos, Finanças e Dívidas recarregam dados ao voltar ao aplicativo;
+  Compras descarta respostas antigas se a seleção mudar durante a consulta.
+- Testes de paginação e retorno à janela passam a executar no CI.
+
 ## [0.5.0] - 2026-11-18
 
 ### Added
